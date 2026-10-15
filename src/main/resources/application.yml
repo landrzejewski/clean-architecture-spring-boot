@@ -1,4 +1,7 @@
 spring:
+  mongodb:
+    # model odczytu (CQRS); serverSelectionTimeoutMS - szybki błąd, gdy MongoDB nie działa
+    uri: mongodb://localhost:27017/payments-read?serverSelectionTimeoutMS=2000
   datasource:
     url: jdbc:h2:mem:payments
   jpa:

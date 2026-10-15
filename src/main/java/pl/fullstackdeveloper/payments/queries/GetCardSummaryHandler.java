@@ -1,27 +1,24 @@
 package pl.fullstackdeveloper.payments.queries;
 
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import pl.fullstackdeveloper.common.cqrs.QueryHandler;
 
 import java.util.Optional;
 
 @Component
-@Transactional(readOnly = true)
 class GetCardSummaryHandler implements QueryHandler<GetCardSummaryQuery, Optional<CardSummary>> {
 
-    private final CardSummaryQueries queries;
+    private final MongoTemplate mongoTemplate;
 
-    GetCardSummaryHandler(final CardSummaryQueries queries) {
-        this.queries = queries;
+    GetCardSummaryHandler(final MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
     public Optional<CardSummary> handle(final GetCardSummaryQuery query) {
-        return queries.jdbc().sql(CardSummaryQueries.CARD_SUMMARY_SQL + " where c.number = :number")
-                .param("number", query.cardNumber())
-                .query(CardSummaryQueries::toCardSummary)
-                .optional();
+        return Optional.ofNullable(mongoTemplate.findById(query.cardNumber(), CardSummaryDocument.class))
+                .map(CardSummaryDocument::toSummary);
     }
 
 }

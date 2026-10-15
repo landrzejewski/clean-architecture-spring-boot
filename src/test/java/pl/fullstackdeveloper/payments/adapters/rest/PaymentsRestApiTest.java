@@ -1,20 +1,28 @@
 package pl.fullstackdeveloper.payments.adapters.rest;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.fullstackdeveloper.payments.queries.MongoReadStore;
 
+import java.time.Duration;
+
+import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Test przekrojowy: REST -> use case -> domena -> adapter in-memory
+// Test przekrojowy: REST -> komendy -> domena -> baza zapisu -> zdarzenia -> MongoDB -> REST
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(MongoReadStore.class)
+@EnabledIf("pl.fullstackdeveloper.payments.queries.Docker#isAvailable")
 class PaymentsRestApiTest {
 
     @Autowired
@@ -37,10 +45,11 @@ class PaymentsRestApiTest {
                         """))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get(location))
+        // odczyt z modelu odczytu (MongoDB) - spójność ostateczna, więc czekamy
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> mockMvc.perform(get(location))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.balance").value(179.50))
-                .andExpect(jsonPath("$.transactionsCount").value(2));
+                .andExpect(jsonPath("$.transactionsCount").value(2)));
     }
 
 }

@@ -5,6 +5,10 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import pl.fullstackdeveloper.common.annotations.Adapter;
+import pl.fullstackdeveloper.payments.application.PaymentsEvent;
+
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -54,7 +58,9 @@ class ArchitectureTest {
             .adapter("generator", "..payments.adapters.generator..")
             .withOptionalLayers(true)
             // composition root (PaymentsConfiguration) może znać wszystkie pierścienie
-            .ignoreDependency(resideInAPackage("pl.fullstackdeveloper.payments"), alwaysTrue());
+            .ignoreDependency(resideInAPackage("pl.fullstackdeveloper.payments"), alwaysTrue())
+            // strona odczytu (CQRS) słucha zdarzeń aplikacji - osobną regułą pilnujemy, że tylko zdarzeń
+            .ignoreDependency(resideInAPackage("..payments.queries.."), resideInAPackage(APPLICATION));
 
     // --- niezależność rdzenia od frameworków
 
@@ -71,8 +77,9 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule read_side_is_independent_of_write_model = noClasses().that().resideInAPackage("..payments.queries..")
-            .should().dependOnClassesThat().resideInAnyPackage(DOMAIN, APPLICATION, ADAPTERS)
-            .because("strona zapytań czyta dane bezpośrednio i nie ładuje agregatów");
+            .should().dependOnClassesThat().resideInAnyPackage(DOMAIN, ADAPTERS)
+            .orShould().dependOnClassesThat(resideInAPackage(APPLICATION).and(not(assignableTo(PaymentsEvent.class))))
+            .because("strona zapytań zna wyłącznie zdarzenia strony zapisu, z których buduje projekcje");
 
     // --- brak cykli między pakietami
 

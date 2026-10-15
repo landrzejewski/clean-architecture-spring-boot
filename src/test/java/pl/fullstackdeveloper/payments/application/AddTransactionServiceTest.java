@@ -26,14 +26,14 @@ class AddTransactionServiceTest {
 
     private final CardRepository cardRepository = new InMemoryCardRepository();
     private final DateTimeProvider fixedClock = () -> NOW;
-    private final List<TransactionAdded> publishedEvents = new ArrayList<>();
+    private final List<PaymentsEvent> publishedEvents = new ArrayList<>();
     private final ExchangeRateProvider exchangeRates = (from, to) -> new ExchangeRate(from, to, new BigDecimal("4"));
     private final AddTransactionUseCase addTransaction =
             new AddTransactionService(fixedClock, publishedEvents::add, cardRepository, exchangeRates);
 
     @BeforeEach
     void beforeEach() {
-        var addCard = new AddCardService(() -> CARD_NUMBER, fixedClock, cardRepository);
+        var addCard = new AddCardService(() -> CARD_NUMBER, fixedClock, cardRepository, event -> { });
         addCard.handle(new AddCardCommand(Currency.getInstance("PLN")));
     }
 
@@ -44,7 +44,7 @@ class AddTransactionServiceTest {
         assertThat(cardRepository.findByNumber(CARD_NUMBER).orElseThrow().getBalance()).isEqualTo(Money.of("100", "PLN"));
         assertThat(publishedEvents)
                 .singleElement()
-                .satisfies(event -> {
+                .isInstanceOfSatisfying(TransactionAdded.class, event -> {
                     assertThat(event.transactionId()).isEqualTo(transactionId.value().toString());
                     assertThat(event.timestamp()).isEqualTo(NOW);
                 });

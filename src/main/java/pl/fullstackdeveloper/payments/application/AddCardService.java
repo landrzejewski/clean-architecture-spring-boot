@@ -13,19 +13,23 @@ public class AddCardService implements AddCardUseCase {
     private final CardNumberGenerator cardNumberGenerator;
     private final DateTimeProvider dateTimeProvider;
     private final CardRepository cardRepository;
+    private final PaymentsEventPublisher eventPublisher;
 
     public AddCardService(final CardNumberGenerator cardNumberGenerator, final DateTimeProvider dateTimeProvider,
-                          final CardRepository cardRepository) {
+                          final CardRepository cardRepository, final PaymentsEventPublisher eventPublisher) {
         this.cardNumberGenerator = cardNumberGenerator;
         this.dateTimeProvider = dateTimeProvider;
         this.cardRepository = cardRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     public CardNumber handle(final AddCardCommand command) {
         var expiration = dateTimeProvider.getZonedDateTime().toLocalDate().plusYears(CARD_VALIDITY_IN_YEARS);
         var card = new Card(new CardId(), cardNumberGenerator.getNext(), expiration, command.currency());
-        return cardRepository.save(card).getNumber();
+        cardRepository.save(card);
+        eventPublisher.publish(new CardAdded(card.getNumber().value(), card.getExpiration(), card.getCurrency().getCurrencyCode()));
+        return card.getNumber();
     }
 
 }

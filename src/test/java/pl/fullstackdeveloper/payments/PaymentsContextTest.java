@@ -3,31 +3,35 @@ package pl.fullstackdeveloper.payments;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import pl.fullstackdeveloper.payments.application.AddCardCommand;
-import pl.fullstackdeveloper.payments.application.AddCardUseCase;
 import pl.fullstackdeveloper.common.cqrs.Bus;
-import pl.fullstackdeveloper.payments.queries.GetCardSummaryQuery;
+import pl.fullstackdeveloper.payments.application.AddCardCommand;
+import pl.fullstackdeveloper.payments.application.AddTransactionCommand;
+import pl.fullstackdeveloper.payments.application.CardRepository;
+import pl.fullstackdeveloper.payments.domain.Money;
 
 import java.util.Currency;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static pl.fullstackdeveloper.payments.domain.TransactionType.INFLOW;
 
-// Test "okablowania": Spring złożył te same klasy, które w 02 składaliśmy ręcznie
+// Test "okablowania" strony zapisu: komendy przez szynę trafiają do use case'ów i bazy zapisu
 @SpringBootTest
-@ActiveProfiles("demo")
 class PaymentsContextTest {
 
     @Autowired
-    private AddCardUseCase addCard;
-    @Autowired
     private Bus bus;
+    @Autowired
+    private CardRepository cardRepository;
+    @Autowired
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     @Test
-    void use_cases_are_wired_by_spring() {
-        var cardNumber = addCard.handle(new AddCardCommand(Currency.getInstance("EUR")));
+    void commands_are_handled_by_use_cases() {
+        var cardNumber = bus.send(new AddCardCommand(Currency.getInstance("EUR")));
+        bus.send(new AddTransactionCommand(cardNumber, Money.of("10", "EUR"), INFLOW));
 
-        assertThat(bus.ask(new GetCardSummaryQuery(cardNumber.value())).orElseThrow().currencyCode()).isEqualTo("EUR");
+        var card = transactionTemplate.execute(status -> cardRepository.findByNumber(cardNumber).orElseThrow());
+        assertThat(card.getBalance()).isEqualTo(Money.of("10", "EUR"));
     }
 
 }

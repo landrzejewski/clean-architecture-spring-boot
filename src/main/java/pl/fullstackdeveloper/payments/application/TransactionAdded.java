@@ -8,5 +8,6 @@ import java.time.ZonedDateTime;
  Zdarzenie domenowe (TransactionRegistered) zostaje wewnątrz modułu.
  */
 public record TransactionAdded(String cardNumber, String transactionId, String type,
-                               BigDecimal amount, String currencyCode, ZonedDateTime timestamp) {
+                               BigDecimal amount, String currencyCode, ZonedDateTime timestamp)
+        implements PaymentsEvent {
 }

@@ -87,3 +87,6 @@ GET http://localhost:8080/api/orders/{{placeOrder.response.body.id}}
 
 ### Transakcje karty (strona odczytu CQRS)
 GET http://localhost:8080/api/cards/{{number}}/transactions
+
+### Przebudowa modelu odczytu (MongoDB) ze źródła prawdy
+POST http://localhost:8080/api/admin/projections/cards/rebuild

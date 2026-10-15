@@ -19,11 +19,11 @@ public class AddTransactionService implements AddTransactionUseCase {
 
     private final CurrencyExchange currencyExchange = new CurrencyExchange();
     private final DateTimeProvider dateTimeProvider;
-    private final TransactionEventPublisher eventPublisher;
+    private final PaymentsEventPublisher eventPublisher;
     private final CardRepository cardRepository;
     private final ExchangeRateProvider exchangeRateProvider;
 
-    public AddTransactionService(final DateTimeProvider dateTimeProvider, final TransactionEventPublisher eventPublisher,
+    public AddTransactionService(final DateTimeProvider dateTimeProvider, final PaymentsEventPublisher eventPublisher,
                                  final CardRepository cardRepository, final ExchangeRateProvider exchangeRateProvider) {
         this.dateTimeProvider = dateTimeProvider;
         this.eventPublisher = eventPublisher;

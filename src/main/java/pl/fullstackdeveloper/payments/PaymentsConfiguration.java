@@ -14,16 +14,16 @@ public class PaymentsConfiguration {
 
     @Bean
     public AddCardUseCase addCardUseCase(final CardNumberGenerator cardNumberGenerator, final DateTimeProvider dateTimeProvider,
-                                         final CardRepository cardRepository) {
-        return new AddCardService(cardNumberGenerator, dateTimeProvider, cardRepository);
+                                         final CardRepository cardRepository, final PaymentsEventPublisher eventPublisher) {
+        return new AddCardService(cardNumberGenerator, dateTimeProvider, cardRepository, eventPublisher);
     }
 
     @Bean
     public AddTransactionUseCase addTransactionUseCase(final DateTimeProvider dateTimeProvider,
-                                                       final TransactionEventPublisher transactionEventPublisher,
+                                                       final PaymentsEventPublisher eventPublisher,
                                                        final CardRepository cardRepository,
                                                        final ExchangeRateProvider exchangeRateProvider) {
-        return new AddTransactionService(dateTimeProvider, transactionEventPublisher, cardRepository, exchangeRateProvider);
+        return new AddTransactionService(dateTimeProvider, eventPublisher, cardRepository, exchangeRateProvider);
     }
 
 }

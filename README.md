@@ -1,53 +1,57 @@
-# 17 – CQRS „lekki” (jedna baza, dwa modele)
+# 18 – CQRS z osobnym magazynem odczytu
 
-> Moduł 4: Wzorce zaawansowane · bazuje na: `15-spring-modulith` · następny: `18-cqrs-read-store`
+> Moduł 4: Wzorce zaawansowane · poprzedni: `17-cqrs-light` · następny: `19-event-sourcing`
 
 ## Cel
-Rozdzielić stronę **zapisu** (komendy → use case → agregat → repozytorium) od strony **odczytu**
-(zapytania → projekcja prosto z bazy). Na razie bez drugiej bazy i bez zdarzeń: te same tabele, dwa różne modele.
+Przenieść model odczytu do **osobnej bazy** (MongoDB) i zasilać go **zdarzeniami** ze strony zapisu.
+To klasyczny CQRS ze slajdów: Command → Command Handler → agregat → Event Bus → Event Handler → read database.
 
 ## Problem z poprzedniego kroku
-- `GetCardService` ładował **cały agregat z historią transakcji** tylko po to, żeby pokazać saldo i liczbę transakcji.
-- Port `CardRepository` rósł o metody potrzebne wyłącznie ekranom (`findAll` ze stronicowaniem).
-- Nowe widoki (np. lista transakcji karty) wymagałyby kolejnych metod w porcie zapisu.
+Strona odczytu w `17` czytała tabele zapisu: wspólny schemat, wspólne obciążenie, brak niezależnego skalowania.
+Każda zmiana tabel strony zapisu groziła zepsuciem zapytań.
 
-## CQS → CQRS
-- **CQS** (B. Meyer): metoda albo zmienia stan (command), albo zwraca dane (query), nigdy jedno i drugie.
-- **CQRS** (G. Young, U. Dahan): ta sama zasada na poziomie modeli i komponentów. Osobny model zapisu (bogata domena, niezmienniki) i osobny model odczytu (płaskie DTO, zapytania optymalizowane pod widok).
+## Przepływ
+```
+POST /transactions ─► AddTransactionCommand ─► AddTransactionService ─► Card (agregat) ─► baza zapisu (H2/PostgreSQL)
+                                                        └─► TransactionAdded ─► event_publication (outbox) ─┐
+                                                                                                           │ po commicie, async
+GET /api/cards/{n} ─► GetCardSummaryQuery ─► MongoDB (card_summaries) ◄─ CardSummaryProjector ◄────────────┘
+```
 
 ## Co się zmieniło
 ```bash
-git diff 15-spring-modulith..17-cqrs-light --stat
+git diff 17-cqrs-light..18-cqrs-read-store --stat
 ```
-| Strona | Elementy |
+| Element | Opis |
 |---|---|
-| Szyna | `common.cqrs`: `Command<R>`, `Query<R>`, `CommandHandler`, `QueryHandler`, `Bus`, `SpringBus` |
-| Zapis | `AddCardUseCase` / `AddTransactionUseCase` **są** `CommandHandler`-ami; komendy implementują `Command<R>` |
-| Zapis | `CardRepository` bez `findAll`: port zapisu potrzebuje tylko `findByNumber` i `save` |
-| Odczyt | `payments.queries`: `GetCardSummaryQuery`, `GetCardsQuery`, `GetCardTransactionsQuery` + handlery na `JdbcClient` |
-| REST | kontrolery wysyłają komendy (`bus.send`) i zadają pytania (`bus.ask`); kontrakt JSON bez zmian |
-| Nowość | `GET /api/cards/{number}/transactions`, odczyt niedostępny wcześniej bez ładowania agregatu |
-
-Usunięte: `GetCardUseCase`, `GetCardsUseCase`, `CardView` i ich serwisy.
+| `PaymentsEvent` (sealed: `CardAdded`, `TransactionAdded`) + port `PaymentsEventPublisher` | zdarzenia niosą komplet danych potrzebnych projekcji |
+| `SpringPaymentsEventPublisher` | publikacja w transakcji use case'u (zamiast logowania na konsolę) |
+| `queries.CardSummaryDocument` | dokument MongoDB: saldo policzone z góry, transakcje osadzone |
+| `queries.CardSummaryProjector` | zdarzenia → dokument; idempotentny i odporny na kolejność |
+| `queries.*Handler` | odczyty z MongoDB zamiast SQL |
+| `CardProjectionRebuilder` + `POST /api/admin/projections/cards/rebuild` | odbudowa modelu odczytu ze źródła prawdy |
+| `MongoReadStore` (test) | MongoDB w Testcontainers |
 
 ## Na co zwrócić uwagę
-- `ArchitectureTest.read_side_is_independent_of_write_model`: strona odczytu nie zna `domain`, `application` ani `adapters`.
-- Liczba transakcji jest liczona w SQL (`count(*)`). Agregat nie jest ładowany.
-- `SpringBus` wyszukuje handler po typie generycznym komunikatu. To ta sama idea co *mediator*.
-- `CardResponse` (REST) nie zmienił się. Klienci nie wiedzą, że pod spodem jest CQRS.
-- Zapytania z ćwiczenia „blog” (`findByCategory`, `findByTags` z `select new …View`) to dokładnie ten wzorzec: projekcja odczytowa obok modelu zapisu.
+- **Spójność ostateczna**: wykonaj w `client.http` wpłatę i od razu odczyt karty. Czasem zobaczysz stary stan. Testy czekają (`await()`).
+- **Idempotentność**: `updateFirst(... transactions.id != id ...)` sprawia, że ponowione zdarzenie (at-least-once) nie zdubluje transakcji ani nie podwoi salda.
+- **Kolejność**: `TransactionAdded` może dotrzeć przed `CardAdded`. Oba handlery robią upsert.
+- **Odbudowa**: skasuj kolekcję `card_summaries` i wywołaj endpoint rebuild. Model odczytu jest tylko pochodną.
+- `ArchitectureTest.read_side_is_independent_of_write_model`: strona odczytu zna tylko zdarzenia (`PaymentsEvent`), nie domenę.
+- Kontrakt REST i strona zapisu bez zmian (poza publikowaniem `CardAdded`).
 
 ## Kiedy NIE stosować
-- Gdy odczyty i zapisy są symetryczne (CRUD), osobne modele to dublowanie kodu.
-- Szyna (`Bus`) dodaje pośrednictwo i utrudnia nawigację w IDE. Kontroler może wołać handler bezpośrednio, a CQRS dalej działa.
+Gdy użytkownik musi natychmiast zobaczyć skutek swojej operacji (read-your-writes), a nie da się tego obejść w UI.
+Gdy obciążenie odczytów nie uzasadnia drugiej bazy.
 
 ## Pytania do dyskusji
-- Czy strona odczytu może łamać enkapsulację modelu zapisu (czytać jego tabele)? Co, gdy schemat się zmieni?
-- Czy komenda powinna cokolwiek zwracać (id)? Jak to się ma do „czystego” CQS?
-- Kiedy jedna baza przestaje wystarczać? (`18`)
+- Jak pokazać użytkownikowi świeże dane zaraz po zapisie (odpowiedź z komendy, wersja, polling)?
+- Co, jeśli projekcja ma błąd i przez tydzień liczyła saldo źle?
+- Czy zdarzenia „pod projekcje” (z kompletem danych) to dobre zdarzenia domenowe?
 
 ## Uruchomienie
 ```bash
-./mvnw test
+./mvnw test                         # testy MongoDB wymagają Dockera
+docker compose up -d mongo
 ./mvnw spring-boot:run
 ```
