@@ -4,8 +4,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.fullstackdeveloper.common.PageSpec;
-import pl.fullstackdeveloper.common.ResultPage;
 import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.payments.application.CardRepository;
 import pl.fullstackdeveloper.payments.domain.*;
@@ -39,20 +37,6 @@ class JdbcCardRepositoryAdapter implements CardRepository {
                 .query(this::toCardRow)
                 .optional()
                 .map(this::toDomain);
-    }
-
-    @Override
-    public ResultPage<Card> findAll(final PageSpec pageSpec) {
-        var cards = jdbcClient.sql("select * from cards order by number limit :limit offset :offset")
-                .param("limit", pageSpec.size())
-                .param("offset", pageSpec.index() * pageSpec.size())
-                .query(this::toCardRow)
-                .list()
-                .stream()
-                .map(this::toDomain)
-                .toList();
-        var total = jdbcClient.sql("select count(*) from cards").query(Long.class).single();
-        return new ResultPage<>(cards, pageSpec, (int) Math.ceil((double) total / pageSpec.size()));
     }
 
     @Override

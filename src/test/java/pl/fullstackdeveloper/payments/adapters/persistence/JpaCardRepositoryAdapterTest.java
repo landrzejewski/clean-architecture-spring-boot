@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import pl.fullstackdeveloper.common.PageSpec;
 import pl.fullstackdeveloper.payments.domain.*;
 
 import java.time.LocalDate;
@@ -39,18 +38,6 @@ class JpaCardRepositoryAdapterTest {
         assertThat(loaded.getBalance()).isEqualTo(Money.of("70", "PLN"));
         assertThat(loaded.getTransactions()).extracting(Transaction::id)
                 .containsExactlyElementsOf(card.getTransactions().stream().map(Transaction::id).toList());
-    }
-
-    @Test
-    void cards_are_paged() {
-        for (int i = 0; i < 3; i++) {
-            adapter.save(new Card(new CardId(), new CardNumber("100000000000000" + i), LocalDate.now().plusYears(1), Currency.getInstance("PLN")));
-        }
-
-        var page = adapter.findAll(new PageSpec(1, 2));
-
-        assertThat(page.content()).hasSize(1);
-        assertThat(page.totalPages()).isEqualTo(2);
     }
 
 }

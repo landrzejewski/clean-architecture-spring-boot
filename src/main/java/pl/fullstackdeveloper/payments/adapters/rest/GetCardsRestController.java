@@ -4,24 +4,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.fullstackdeveloper.common.PageSpec;
-import pl.fullstackdeveloper.payments.application.GetCardsUseCase;
+import pl.fullstackdeveloper.common.cqrs.Bus;
+import pl.fullstackdeveloper.payments.queries.GetCardsQuery;
 
 @RestController
 class GetCardsRestController {
 
-    private final GetCardsUseCase getCardsUseCase;
+    private final Bus bus;
     private final CardRestMapper mapper;
 
-    GetCardsRestController(final GetCardsUseCase getCardsUseCase, final CardRestMapper mapper) {
-        this.getCardsUseCase = getCardsUseCase;
+    GetCardsRestController(final Bus bus, final CardRestMapper mapper) {
+        this.bus = bus;
         this.mapper = mapper;
     }
 
     @GetMapping("api/cards")
     PageResponse<CardResponse> getCards(@RequestParam(defaultValue = "0") final int pageIndex,
                                         @RequestParam(defaultValue = "10") final int pageSize) {
-        var resultPage = getCardsUseCase.handle(new PageSpec(pageIndex, pageSize));
-        return mapper.toResponse(resultPage);
+        return mapper.toResponse(bus.ask(new GetCardsQuery(new PageSpec(pageIndex, pageSize))));
     }
 
 }

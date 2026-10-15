@@ -1,14 +1,16 @@
 package pl.fullstackdeveloper.payments.application;
 
+import pl.fullstackdeveloper.common.cqrs.Command;
 import pl.fullstackdeveloper.payments.domain.CardNumber;
 import pl.fullstackdeveloper.payments.domain.Money;
+import pl.fullstackdeveloper.payments.domain.TransactionId;
 import pl.fullstackdeveloper.payments.domain.TransactionType;
 
 import java.math.BigDecimal;
 
 import static java.util.Objects.requireNonNull;
 
-public record AddTransactionCommand(CardNumber cardNumber, Money value, TransactionType type) {
+public record AddTransactionCommand(CardNumber cardNumber, Money value, TransactionType type) implements Command<TransactionId> {
 
     public AddTransactionCommand {
         requireNonNull(cardNumber, "cardNumber is required");

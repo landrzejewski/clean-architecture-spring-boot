@@ -67,6 +67,13 @@ class ArchitectureTest {
             .should().callMethod(java.time.ZonedDateTime.class, "now")
             .because("czas dostarcza port DateTimeProvider - domena musi być deterministyczna");
 
+    // --- CQRS: strona odczytu nie zna modelu zapisu
+
+    @ArchTest
+    static final ArchRule read_side_is_independent_of_write_model = noClasses().that().resideInAPackage("..payments.queries..")
+            .should().dependOnClassesThat().resideInAnyPackage(DOMAIN, APPLICATION, ADAPTERS)
+            .because("strona zapytań czyta dane bezpośrednio i nie ładuje agregatów");
+
     // --- brak cykli między pakietami
 
     @ArchTest

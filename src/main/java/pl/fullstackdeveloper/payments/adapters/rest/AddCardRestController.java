@@ -5,7 +5,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import pl.fullstackdeveloper.payments.application.AddCardUseCase;
+import pl.fullstackdeveloper.common.cqrs.Bus;
 
 import static pl.fullstackdeveloper.common.web.LocationUri.fromRequest;
 
@@ -16,17 +16,17 @@ import static pl.fullstackdeveloper.common.web.LocationUri.fromRequest;
 @RestController
 class AddCardRestController {
 
-    private final AddCardUseCase addCardUseCase;
+    private final Bus bus;
     private final CardRestMapper mapper;
 
-    AddCardRestController(final AddCardUseCase addCardUseCase, final CardRestMapper mapper) {
-        this.addCardUseCase = addCardUseCase;
+    AddCardRestController(final Bus bus, final CardRestMapper mapper) {
+        this.bus = bus;
         this.mapper = mapper;
     }
 
     @PostMapping("api/cards")
     ResponseEntity<CardNumberResponse> addCard(@Validated @RequestBody final AddCardRequest request) {
-        var cardNumber = addCardUseCase.handle(mapper.toCommand(request));
+        var cardNumber = bus.send(mapper.toCommand(request));
         var locationUri = fromRequest(cardNumber.value());
         return ResponseEntity.created(locationUri).body(new CardNumberResponse(cardNumber.value()));
     }

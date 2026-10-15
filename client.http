@@ -84,3 +84,6 @@ GET http://localhost:8080/api/orders?cardNumber={{number}}
 
 ### Status zamówienia (po chwili PAID / REJECTED)
 GET http://localhost:8080/api/orders/{{placeOrder.response.body.id}}
+
+### Transakcje karty (strona odczytu CQRS)
+GET http://localhost:8080/api/cards/{{number}}/transactions

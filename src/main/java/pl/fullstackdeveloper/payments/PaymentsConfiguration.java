@@ -26,14 +26,4 @@ public class PaymentsConfiguration {
         return new AddTransactionService(dateTimeProvider, transactionEventPublisher, cardRepository, exchangeRateProvider);
     }
 
-    @Bean
-    public GetCardUseCase getCardUseCase(final CardRepository cardRepository) {
-        return new GetCardService(cardRepository);
-    }
-
-    @Bean
-    public GetCardsUseCase getCardsUseCase(final CardRepository cardRepository) {
-        return new GetCardsService(cardRepository);
-    }
-
 }

@@ -6,7 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import pl.fullstackdeveloper.payments.application.AddCardCommand;
 import pl.fullstackdeveloper.payments.application.AddCardUseCase;
-import pl.fullstackdeveloper.payments.application.GetCardUseCase;
+import pl.fullstackdeveloper.common.cqrs.Bus;
+import pl.fullstackdeveloper.payments.queries.GetCardSummaryQuery;
 
 import java.util.Currency;
 
@@ -20,13 +21,13 @@ class PaymentsContextTest {
     @Autowired
     private AddCardUseCase addCard;
     @Autowired
-    private GetCardUseCase getCard;
+    private Bus bus;
 
     @Test
     void use_cases_are_wired_by_spring() {
         var cardNumber = addCard.handle(new AddCardCommand(Currency.getInstance("EUR")));
 
-        assertThat(getCard.handle(cardNumber).balance().currency()).isEqualTo(Currency.getInstance("EUR"));
+        assertThat(bus.ask(new GetCardSummaryQuery(cardNumber.value())).orElseThrow().currencyCode()).isEqualTo("EUR");
     }
 
 }

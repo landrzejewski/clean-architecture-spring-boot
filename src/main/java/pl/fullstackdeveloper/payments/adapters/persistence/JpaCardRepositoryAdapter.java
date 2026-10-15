@@ -2,12 +2,8 @@ package pl.fullstackdeveloper.payments.adapters.persistence;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.fullstackdeveloper.common.PageSpec;
-import pl.fullstackdeveloper.common.ResultPage;
 import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.payments.application.CardModifiedConcurrentlyException;
 import pl.fullstackdeveloper.payments.application.CardRepository;
@@ -36,13 +32,6 @@ class JpaCardRepositoryAdapter implements CardRepository {
     @Override
     public Optional<Card> findByNumber(final CardNumber cardNumber) {
         return repository.findByNumber(cardNumber.value()).map(mapper::toDomain);
-    }
-
-    @Override
-    public ResultPage<Card> findAll(final PageSpec pageSpec) {
-        var page = repository.findAll(PageRequest.of(pageSpec.index(), pageSpec.size(), Sort.by("number")));
-        var cards = page.getContent().stream().map(mapper::toDomain).toList();
-        return new ResultPage<>(cards, pageSpec, page.getTotalPages());
     }
 
     @Override

@@ -7,9 +7,11 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import pl.fullstackdeveloper.common.PageSpec;
 import pl.fullstackdeveloper.common.annotations.Adapter;
+import pl.fullstackdeveloper.common.cqrs.Bus;
 import pl.fullstackdeveloper.payments.application.*;
 import pl.fullstackdeveloper.payments.domain.DomainException;
 import pl.fullstackdeveloper.payments.domain.Money;
+import pl.fullstackdeveloper.payments.queries.GetCardsQuery;
 
 import java.util.Currency;
 
@@ -25,12 +27,12 @@ class DemoRunner implements ApplicationRunner {
 
     private final AddCardUseCase addCard;
     private final AddTransactionUseCase addTransaction;
-    private final GetCardsUseCase getCards;
+    private final Bus bus;
 
-    DemoRunner(final AddCardUseCase addCard, final AddTransactionUseCase addTransaction, final GetCardsUseCase getCards) {
+    DemoRunner(final AddCardUseCase addCard, final AddTransactionUseCase addTransaction, final Bus bus) {
         this.addCard = addCard;
         this.addTransaction = addTransaction;
-        this.getCards = getCards;
+        this.bus = bus;
     }
 
     @Override
@@ -42,7 +44,7 @@ class DemoRunner implements ApplicationRunner {
         } catch (DomainException exception) {
             LOGGER.info("Rejected: {}", exception.getMessage());
         }
-        LOGGER.info("{}", getCards.handle(new PageSpec(0, 10)));
+        LOGGER.info("{}", bus.ask(new GetCardsQuery(new PageSpec(0, 10))));
     }
 
 }

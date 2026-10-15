@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.fullstackdeveloper.payments.application.AddTransactionCommand;
-import pl.fullstackdeveloper.payments.application.AddTransactionUseCase;
+import pl.fullstackdeveloper.common.cqrs.Bus;
 import pl.fullstackdeveloper.payments.application.CardNotFoundException;
 import pl.fullstackdeveloper.payments.domain.CardNumber;
 import pl.fullstackdeveloper.payments.domain.InsufficientBalanceException;
@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static pl.fullstackdeveloper.payments.domain.TransactionType.PAYMENT;
 
 /*
- Test adaptera w izolacji: tylko warstwa web, use case zastąpiony mockiem portu wejściowego.
+ Test adaptera w izolacji: tylko warstwa web, szyna komend zastąpiona mockiem.
  Sprawdzamy kontrakt HTTP: mapowanie JSON -> komenda, kody statusu, Problem Details.
  */
 @WebMvcTest(AddTransactionRestController.class)
@@ -41,19 +41,19 @@ class AddTransactionRestControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
-    private AddTransactionUseCase addTransactionUseCase;
+    private Bus bus;
 
     @Test
     void valid_request_is_mapped_to_command() throws Exception {
         var transactionId = new TransactionId(UUID.randomUUID());
-        when(addTransactionUseCase.handle(any())).thenReturn(transactionId);
+        when(bus.send(any(AddTransactionCommand.class))).thenReturn(transactionId);
 
         mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost" + URL + "/" + transactionId.value()))
                 .andExpect(jsonPath("$.id").value(transactionId.value().toString()));
 
-        verify(addTransactionUseCase).handle(new AddTransactionCommand(new CardNumber(CARD_NUMBER), Money.of("100", "PLN"), PAYMENT));
+        verify(bus).send(new AddTransactionCommand(new CardNumber(CARD_NUMBER), Money.of("100", "PLN"), PAYMENT));
     }
 
     @Test
@@ -66,7 +66,7 @@ class AddTransactionRestControllerTest {
 
     @Test
     void domain_exception_is_translated_to_problem_details() throws Exception {
-        when(addTransactionUseCase.handle(any())).thenThrow(new InsufficientBalanceException());
+        when(bus.send(any(AddTransactionCommand.class))).thenThrow(new InsufficientBalanceException());
 
         mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST).header("Accept-Language", "pl"))
                 .andExpect(status().isUnprocessableContent())
@@ -77,7 +77,7 @@ class AddTransactionRestControllerTest {
 
     @Test
     void missing_card_is_reported_as_not_found() throws Exception {
-        when(addTransactionUseCase.handle(any())).thenThrow(new CardNotFoundException());
+        when(bus.send(any(AddTransactionCommand.class))).thenThrow(new CardNotFoundException());
 
         mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(VALID_REQUEST))
                 .andExpect(status().isNotFound());

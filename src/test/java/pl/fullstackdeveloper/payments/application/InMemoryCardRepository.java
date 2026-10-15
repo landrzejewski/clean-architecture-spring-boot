@@ -1,12 +1,9 @@
 package pl.fullstackdeveloper.payments.application;
 
-import pl.fullstackdeveloper.common.PageSpec;
-import pl.fullstackdeveloper.common.ResultPage;
 import pl.fullstackdeveloper.payments.domain.Card;
 import pl.fullstackdeveloper.payments.domain.CardNumber;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,11 +15,6 @@ final class InMemoryCardRepository implements CardRepository {
     @Override
     public Optional<Card> findByNumber(final CardNumber cardNumber) {
         return Optional.ofNullable(cards.get(cardNumber));
-    }
-
-    @Override
-    public ResultPage<Card> findAll(final PageSpec pageSpec) {
-        return new ResultPage<>(List.copyOf(cards.values()), pageSpec, 1);
     }
 
     @Override

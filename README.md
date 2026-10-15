@@ -1,60 +1,53 @@
-# 15 – Spring Modulith
+# 17 – CQRS „lekki” (jedna baza, dwa modele)
 
-> Moduł 3: Modularyzacja · poprzedni: `14-module-communication` · następny: `16-extract-microservice`
-> (moduł 4 – wzorce zaawansowane – startuje z tego brancha: `17-cqrs-light`, `20-saga-orchestration`)
+> Moduł 4: Wzorce zaawansowane · bazuje na: `15-spring-modulith` · następny: `18-cqrs-read-store`
 
 ## Cel
-Uzyskać granice modułów z `11`–`14` taniej: jeden artefakt, moduły jako pakiety, weryfikacja przez Spring Modulith.
-Do tego **niezawodne zdarzenia** (transactional outbox), testy modułów w izolacji i dokumentacja generowana z kodu.
+Rozdzielić stronę **zapisu** (komendy → use case → agregat → repozytorium) od strony **odczytu**
+(zapytania → projekcja prosto z bazy). Na razie bez drugiej bazy i bez zdarzeń: te same tabele, dwa różne modele.
 
 ## Problem z poprzedniego kroku
-- Pięć modułów Maven, `module-info`, testowe aplikacje per moduł: dużo infrastruktury.
-- Zdarzenia w pamięci. Awaria między commitem płatności a publikacją `PaymentProcessed` = zamówienie „wisi” w `AWAITING_PAYMENT`.
+- `GetCardService` ładował **cały agregat z historią transakcji** tylko po to, żeby pokazać saldo i liczbę transakcji.
+- Port `CardRepository` rósł o metody potrzebne wyłącznie ekranom (`findAll` ze stronicowaniem).
+- Nowe widoki (np. lista transakcji karty) wymagałyby kolejnych metod w porcie zapisu.
+
+## CQS → CQRS
+- **CQS** (B. Meyer): metoda albo zmienia stan (command), albo zwraca dane (query), nigdy jedno i drugie.
+- **CQRS** (G. Young, U. Dahan): ta sama zasada na poziomie modeli i komponentów. Osobny model zapisu (bogata domena, niezmienniki) i osobny model odczytu (płaskie DTO, zapytania optymalizowane pod widok).
 
 ## Co się zmieniło
 ```bash
-git diff 14-module-communication..15-spring-modulith --stat -M
+git diff 15-spring-modulith..17-cqrs-light --stat
 ```
-| Element | Gdzie |
+| Strona | Elementy |
 |---|---|
-| Moduły aplikacyjne | `payments`, `orders`, `common` (`package-info.java` z `@ApplicationModule`) |
-| API płatności | `payments.api` z `@NamedInterface("api")`; `orders` ma `allowedDependencies = {"payments::api", "common"}` |
-| Weryfikacja granic | `ApplicationModularityTest.modules_respect_boundaries` (zastępuje `ContextBoundariesTest`, moduły Maven i JPMS) |
-| Outbox | `spring-modulith-starter-jpa`, tabela `event_publication`, `republish-outstanding-events-on-restart` |
-| Listenery | `@ApplicationModuleListener` (async + nowa transakcja + after commit) w `PaymentRequestedListener` i `PaymentProcessedListener` |
-| Zamówienia w bazie | `orders.adapters.persistence.JpaOrderRepositoryAdapter`. Zapis zamówienia i `PaymentRequested` w jednej transakcji |
-| Odrzucenie ≠ awaria | `@Atomic(noRollbackFor = …)` w `AddTransactionService` |
-| Testy modułów | `OrdersModuleTest`, `PaymentsModuleTest` (`@ApplicationModuleTest` + `Scenario`) |
-| Demo ponawiania | `EventPublicationRegistryTest`: listener pada, publikacja zostaje, `FailedEventPublications.resubmit()` |
-| Dokumentacja z kodu | `ApplicationModularityTest.writes_documentation` → `target/spring-modulith-docs`, kopia w `docs/modulith` |
+| Szyna | `common.cqrs`: `Command<R>`, `Query<R>`, `CommandHandler`, `QueryHandler`, `Bus`, `SpringBus` |
+| Zapis | `AddCardUseCase` / `AddTransactionUseCase` **są** `CommandHandler`-ami; komendy implementują `Command<R>` |
+| Zapis | `CardRepository` bez `findAll`: port zapisu potrzebuje tylko `findByNumber` i `save` |
+| Odczyt | `payments.queries`: `GetCardSummaryQuery`, `GetCardsQuery`, `GetCardTransactionsQuery` + handlery na `JdbcClient` |
+| REST | kontrolery wysyłają komendy (`bus.send`) i zadają pytania (`bus.ask`); kontrakt JSON bez zmian |
+| Nowość | `GET /api/cards/{number}/transactions`, odczyt niedostępny wcześniej bez ładowania agregatu |
+
+Usunięte: `GetCardUseCase`, `GetCardsUseCase`, `CardView` i ich serwisy.
 
 ## Na co zwrócić uwagę
-- Spróbuj w `orders` użyć `pl.fullstackdeveloper.payments.domain.Card` i uruchom `ApplicationModularityTest`:
-  `Module 'orders' depends on module 'payments' via … Allowed targets: payments :: api, common.`
-- `OrdersModuleTest` uruchamia **tylko** moduł zamówień. Płatności „udajemy” zdarzeniami (`scenario.publish(...)`, `andWaitForEventOfType(...)`).
-- `PaymentRequestedListener`: obciążenie karty, publikacja `PaymentProcessed` i oznaczenie `PaymentRequested` jako przetworzonego dzieje się w jednej transakcji.
-- Konsola H2 (`/h2`) pokazuje tabelę `EVENT_PUBLICATION` z datą publikacji i ukończenia każdego zdarzenia.
-- Dostarczanie at-least-once oznacza, że przy ponowieniu listener może dostać to samo zdarzenie drugi raz. Jak zabezpieczyć `PaymentRequestedListener` przed podwójnym obciążeniem? (wątek wraca w `20`)
-
-## Moduły Maven / JPMS / Modulith
-| | Maven (`12`) | JPMS (`13`) | Modulith (`15`) |
-|---|---|---|---|
-| Kiedy działa | kompilacja | kompilacja (+ runtime na module path) | testy |
-| Granulacja | artefakt | pakiet (`exports`) | pakiet (API + named interfaces) |
-| Koszt | poms, wersjonowanie | `module-info`, refleksja | prawie zerowy |
-| Bonus | osobne wydania | silna hermetyzacja | outbox, testy modułów, dokumentacja |
+- `ArchitectureTest.read_side_is_independent_of_write_model`: strona odczytu nie zna `domain`, `application` ani `adapters`.
+- Liczba transakcji jest liczona w SQL (`count(*)`). Agregat nie jest ładowany.
+- `SpringBus` wyszukuje handler po typie generycznym komunikatu. To ta sama idea co *mediator*.
+- `CardResponse` (REST) nie zmienił się. Klienci nie wiedzą, że pod spodem jest CQRS.
+- Zapytania z ćwiczenia „blog” (`findByCategory`, `findByTags` z `select new …View`) to dokładnie ten wzorzec: projekcja odczytowa obok modelu zapisu.
 
 ## Kiedy NIE stosować
-Gdy moduły mają być wydawane i wersjonowane niezależnie albo rozwijane przez osobne zespoły w osobnych repozytoriach.
-Wtedy moduły Maven (lub osobne usługi) dają twardsze granice.
+- Gdy odczyty i zapisy są symetryczne (CRUD), osobne modele to dublowanie kodu.
+- Szyna (`Bus`) dodaje pośrednictwo i utrudnia nawigację w IDE. Kontroler może wołać handler bezpośrednio, a CQRS dalej działa.
 
 ## Pytania do dyskusji
-- Czy test łapiący naruszenie granicy wystarczy, czy potrzebujesz kompilatora?
-- Gdzie powinna żyć logika idempotentności: w listenerze, w use case czy w domenie?
-- Co wybrać po wydzieleniu modułu do osobnej usługi: Event Publication Registry, czy broker z własnym outboxem?
+- Czy strona odczytu może łamać enkapsulację modelu zapisu (czytać jego tabele)? Co, gdy schemat się zmieni?
+- Czy komenda powinna cokolwiek zwracać (id)? Jak to się ma do „czystego” CQS?
+- Kiedy jedna baza przestaje wystarczać? (`18`)
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw spring-boot:run      # http://localhost:8080/h2 (JDBC URL: jdbc:h2:mem:payments) -> tabela EVENT_PUBLICATION
+./mvnw spring-boot:run
 ```
