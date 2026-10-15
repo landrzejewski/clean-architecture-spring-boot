@@ -8,40 +8,60 @@ import java.util.List;
 import static pl.fullstackdeveloper.payments.domain.TransactionType.INFLOW;
 
 /*
- Agregat - granica spójności. Stan (saldo) zmienia się wyłącznie przez metody biznesowe,
- które pilnują niezmienników: waluta, data ważności, wystarczające środki.
- Brak setterów, brak zależności od frameworków.
+ Agregat w wersji Event Sourcing:
+ - metoda biznesowa najpierw sprawdza niezmienniki, potem REJESTRUJE zdarzenie (record),
+ - zmiana stanu dzieje się wyłącznie w apply(zdarzenie) - ta sama ścieżka przy obsłudze komendy
+   i przy odtwarzaniu z historii (fromHistory),
+ - agregat trzyma tylko stan potrzebny do podejmowania decyzji (saldo, waluta, ważność);
+   pełna historia transakcji jest w zdarzeniach.
  */
 public final class Card {
 
-    private final CardId id;
-    private final CardNumber number;
-    private final LocalDate expiration;
-    private final Currency currency;
-    private final List<Transaction> transactions = new ArrayList<>();
-    private final List<TransactionRegistered> events = new ArrayList<>();
+    private final List<CardEvent> pendingEvents = new ArrayList<>();
+    private CardId id;
+    private CardNumber number;
+    private LocalDate expiration;
+    private Currency currency;
     private Money balance;
+    private long transactionsCount;
+    private long version;
 
-    public Card(final CardId id, final CardNumber number, final LocalDate expiration, final Currency currency) {
-        this.id = id;
-        this.number = number;
-        this.expiration = expiration;
-        this.currency = currency;
-        this.balance = Money.zero(currency);
+    private Card() {
     }
 
-    // Odtworzenie agregatu z zapisanego stanu - bez walidacji i bez publikowania zdarzeń
-    public static Card restore(final CardId id, final CardNumber number, final LocalDate expiration,
-                               final Currency currency, final List<Transaction> transactions) {
-        var card = new Card(id, number, expiration, currency);
-        transactions.forEach(card::commit);
+    public Card(final CardId id, final CardNumber number, final LocalDate expiration, final Currency currency) {
+        record(new CardIssued(id, number, expiration, currency));
+    }
+
+    public static Card fromHistory(final List<? extends CardEvent> history) {
+        if (history.isEmpty()) {
+            throw new IllegalArgumentException("Card history cannot be empty");
+        }
+        var card = new Card();
+        history.forEach(card::apply);
         return card;
+    }
+
+    public static Card fromSnapshot(final CardSnapshot snapshot, final List<? extends CardEvent> newerEvents) {
+        var card = new Card();
+        card.id = snapshot.id();
+        card.number = snapshot.number();
+        card.expiration = snapshot.expiration();
+        card.currency = snapshot.currency();
+        card.balance = snapshot.balance();
+        card.transactionsCount = snapshot.transactionsCount();
+        card.version = snapshot.version();
+        newerEvents.forEach(card::apply);
+        return card;
+    }
+
+    public CardSnapshot snapshot() {
+        return new CardSnapshot(id, number, expiration, currency, balance, transactionsCount, version);
     }
 
     public void registerTransaction(final Transaction transaction) {
         validate(transaction);
-        commit(transaction);
-        events.add(new TransactionRegistered(number, transaction));
+        record(new TransactionRegistered(number, transaction));
     }
 
     private void validate(final Transaction transaction) {
@@ -51,27 +71,47 @@ public final class Card {
         if (!transaction.hasCurrency(currency)) {
             throw new MismatchedCurrencyException();
         }
-        if (!hasSufficientBalanceFor(transaction)) {
+        if (transaction.type() != INFLOW && !balance.isGreaterOrEqual(transaction.value())) {
             throw new InsufficientBalanceException();
         }
     }
 
-    private boolean hasSufficientBalanceFor(final Transaction transaction) {
-        return transaction.type() == INFLOW || balance.isGreaterOrEqual(transaction.value());
+    private void record(final CardEvent event) {
+        apply(event);
+        pendingEvents.add(event);
     }
 
-    private void commit(final Transaction transaction) {
-        transactions.add(transaction);
-        balance = switch (transaction.type()) {
-            case INFLOW -> balance.add(transaction.value());
-            case PAYMENT -> balance.subtract(transaction.value());
-        };
+    // Jedyne miejsce zmiany stanu - bez walidacji: zdarzenie to fakt, który już zaszedł
+    private void apply(final CardEvent event) {
+        switch (event) {
+            case CardIssued issued -> {
+                id = issued.cardId();
+                number = issued.cardNumber();
+                expiration = issued.expiration();
+                currency = issued.currency();
+                balance = Money.zero(currency);
+            }
+            case TransactionRegistered registered -> {
+                var transaction = registered.transaction();
+                balance = switch (transaction.type()) {
+                    case INFLOW -> balance.add(transaction.value());
+                    case PAYMENT -> balance.subtract(transaction.value());
+                };
+                transactionsCount++;
+            }
+        }
+        version++;
     }
 
-    // Zdarzenia zebrane od ostatniego odczytu - publikuje je warstwa aplikacji
-    public List<TransactionRegistered> pullEvents() {
-        var pulledEvents = List.copyOf(events);
-        events.clear();
+    // Zdarzenia jeszcze niezapisane - do odczytu przez repozytorium (event store)
+    public List<CardEvent> getPendingEvents() {
+        return List.copyOf(pendingEvents);
+    }
+
+    // Zdarzenia od ostatniego odczytu - publikuje je warstwa aplikacji
+    public List<CardEvent> pullEvents() {
+        var pulledEvents = List.copyOf(pendingEvents);
+        pendingEvents.clear();
         return pulledEvents;
     }
 
@@ -95,8 +135,13 @@ public final class Card {
         return balance;
     }
 
-    public List<Transaction> getTransactions() {
-        return List.copyOf(transactions);
+    public long getTransactionsCount() {
+        return transactionsCount;
+    }
+
+    // Liczba zdarzeń zastosowanych do agregatu (łącznie z niezapisanymi)
+    public long getVersion() {
+        return version;
     }
 
 }

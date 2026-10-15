@@ -9,7 +9,6 @@ import pl.fullstackdeveloper.payments.domain.DomainException;
 import pl.fullstackdeveloper.payments.domain.Money;
 import pl.fullstackdeveloper.payments.domain.Transaction;
 import pl.fullstackdeveloper.payments.domain.TransactionId;
-import pl.fullstackdeveloper.payments.domain.TransactionRegistered;
 
 /*
  Use case orkiestruje: pobiera agregat przez port, deleguje logikę do domeny,
@@ -43,7 +42,7 @@ public class AddTransactionService implements AddTransactionUseCase {
         var transaction = new Transaction(new TransactionId(), dateTimeProvider.getZonedDateTime(), value, command.type());
         card.registerTransaction(transaction);
         cardRepository.save(card);
-        card.pullEvents().forEach(this::publish);
+        card.pullEvents().stream().map(PaymentsEvents::from).forEach(eventPublisher::publish);
         return transaction.id();
     }
 
@@ -58,18 +57,6 @@ public class AddTransactionService implements AddTransactionUseCase {
         }
         var rate = exchangeRateProvider.getRate(command.value().currency(), card.getCurrency());
         return currencyExchange.toCardCurrency(command.value(), rate, command.type());
-    }
-
-    private void publish(final TransactionRegistered event) {
-        var transaction = event.transaction();
-        eventPublisher.publish(new TransactionAdded(
-                event.cardNumber().value(),
-                transaction.id().value().toString(),
-                transaction.type().name(),
-                transaction.value().amount(),
-                transaction.value().currency().getCurrencyCode(),
-                transaction.timestamp()
-        ));
     }
 
 }

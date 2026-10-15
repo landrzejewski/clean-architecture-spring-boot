@@ -44,7 +44,7 @@ class CardTest {
 
         assertThatThrownBy(() -> card.registerTransaction(payment("1")))
                 .isInstanceOf(InsufficientBalanceException.class);
-        assertThat(card.getTransactions()).isEmpty();
+        assertThat(card.getTransactionsCount()).isZero();
     }
 
     @Test
@@ -66,19 +66,12 @@ class CardTest {
     @Test
     void registered_transaction_produces_domain_event() {
         var card = plnCard();
+        card.pullEvents();
         var transaction = inflow("100");
 
         card.registerTransaction(transaction);
 
         assertThat(card.pullEvents()).containsExactly(new TransactionRegistered(CARD_NUMBER, transaction));
-        assertThat(card.pullEvents()).isEmpty();
-    }
-
-    @Test
-    void restored_card_has_balance_but_no_events() {
-        var card = Card.restore(new CardId(), CARD_NUMBER, EXPIRATION, PLN, java.util.List.of(inflow("100"), payment("30")));
-
-        assertThat(card.getBalance()).isEqualTo(Money.of("70", "PLN"));
         assertThat(card.pullEvents()).isEmpty();
     }
 

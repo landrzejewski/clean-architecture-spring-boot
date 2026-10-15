@@ -1,57 +1,58 @@
-# 18 – CQRS z osobnym magazynem odczytu
+# 19 – Event Sourcing
 
-> Moduł 4: Wzorce zaawansowane · poprzedni: `17-cqrs-light` · następny: `19-event-sourcing`
+> Moduł 4: Wzorce zaawansowane · poprzedni: `18-cqrs-read-store` · koniec ścieżki CQRS/ES
 
 ## Cel
-Przenieść model odczytu do **osobnej bazy** (MongoDB) i zasilać go **zdarzeniami** ze strony zapisu.
-To klasyczny CQRS ze slajdów: Command → Command Handler → agregat → Event Bus → Event Handler → read database.
+Zamiast zapisywać **stan** karty, zapisujemy **zdarzenia**, które do niego doprowadziły. Stan agregatu
+odtwarzamy z historii, a modele odczytu (MongoDB z `18`) możemy w każdej chwili zbudować od zera przez replay.
 
 ## Problem z poprzedniego kroku
-Strona odczytu w `17` czytała tabele zapisu: wspólny schemat, wspólne obciążenie, brak niezależnego skalowania.
-Każda zmiana tabel strony zapisu groziła zepsuciem zapytań.
-
-## Przepływ
-```
-POST /transactions ─► AddTransactionCommand ─► AddTransactionService ─► Card (agregat) ─► baza zapisu (H2/PostgreSQL)
-                                                        └─► TransactionAdded ─► event_publication (outbox) ─┐
-                                                                                                           │ po commicie, async
-GET /api/cards/{n} ─► GetCardSummaryQuery ─► MongoDB (card_summaries) ◄─ CardSummaryProjector ◄────────────┘
-```
+- Tabele `cards`/`transactions` przechowywały stan, a zdarzenia były tylko „powiadomieniem”. Gdyby projekcja zgubiła zdarzenie, nie byłoby skąd go wziąć.
+- Przebudowa modelu odczytu w `18` czytała tabele zapisu, a nie zdarzenia, więc nowy widok nie miał dostępu do pełnej historii.
 
 ## Co się zmieniło
 ```bash
-git diff 17-cqrs-light..18-cqrs-read-store --stat
+git diff 18-cqrs-read-store..19-event-sourcing --stat
 ```
 | Element | Opis |
 |---|---|
-| `PaymentsEvent` (sealed: `CardAdded`, `TransactionAdded`) + port `PaymentsEventPublisher` | zdarzenia niosą komplet danych potrzebnych projekcji |
-| `SpringPaymentsEventPublisher` | publikacja w transakcji use case'u (zamiast logowania na konsolę) |
-| `queries.CardSummaryDocument` | dokument MongoDB: saldo policzone z góry, transakcje osadzone |
-| `queries.CardSummaryProjector` | zdarzenia → dokument; idempotentny i odporny na kolejność |
-| `queries.*Handler` | odczyty z MongoDB zamiast SQL |
-| `CardProjectionRebuilder` + `POST /api/admin/projections/cards/rebuild` | odbudowa modelu odczytu ze źródła prawdy |
-| `MongoReadStore` (test) | MongoDB w Testcontainers |
+| `domain.CardEvent` (sealed: `CardIssued`, `TransactionRegistered`) | zdarzenia domenowe jako źródło prawdy |
+| `domain.Card` | `record(event)` → `apply(event)`, `fromHistory`, `fromSnapshot`/`snapshot`, `version`; bez listy transakcji |
+| `schema.sql` | `card_events` (append-only, PK `(stream_id, version)`) i `card_snapshots` |
+| `adapters.persistence.EventSourcedCardRepository` | ten sam port `CardRepository`: append z oczekiwaną wersją, migawki co N zdarzeń |
+| `adapters.persistence.StoredEventMapper` | jawny, wersjonowany format zapisu (`CardIssued.v1`, …) |
+| `application.PaymentsEventHistory` + `EventStoreHistory` | odtworzenie całej historii (replay) |
+| `queries.CardProjectionRebuilder` | odbudowa MongoDB przez replay zdarzeń tą samą projekcją co na bieżąco |
+
+Usunięte: encje JPA kart, adapter JDBC, `Card.restore()`.
 
 ## Na co zwrócić uwagę
-- **Spójność ostateczna**: wykonaj w `client.http` wpłatę i od razu odczyt karty. Czasem zobaczysz stary stan. Testy czekają (`await()`).
-- **Idempotentność**: `updateFirst(... transactions.id != id ...)` sprawia, że ponowione zdarzenie (at-least-once) nie zdubluje transakcji ani nie podwoi salda.
-- **Kolejność**: `TransactionAdded` może dotrzeć przed `CardAdded`. Oba handlery robią upsert.
-- **Odbudowa**: skasuj kolekcję `card_summaries` i wywołaj endpoint rebuild. Model odczytu jest tylko pochodną.
-- `ArchitectureTest.read_side_is_independent_of_write_model`: strona odczytu zna tylko zdarzenia (`PaymentsEvent`), nie domenę.
-- Kontrakt REST i strona zapisu bez zmian (poza publikowaniem `CardAdded`).
+- `CardEventSourcingTest` pokazuje testy given (historia zdarzeń) / when (komenda) / then (nowe zdarzenia).
+- **Optimistic concurrency bez `@Version`**: dwóch piszących z tą samą wersją próbuje dopisać `(stream_id, version)`, a drugi dostaje `DuplicateKeyException`, czyli `CardModifiedConcurrentlyException` (`OptimisticLockingTest` przechodzi bez zmian).
+- `CardRepositoryContractTest` przechodzi dla event store, bo port dotrzymuje kontraktu niezależnie od modelu utrwalania.
+- `EventStoreTest`: 25 zdarzeń, migawka po 20., odczyt = migawka + 5 zdarzeń.
+- `AddCardService` i `AddTransactionService` publikują zdarzenia aplikacyjne mapowane ze zdarzeń domenowych (`PaymentsEvents.from`).
+- Zapytaj H2 (`/h2`): `select * from card_events order by position` to pełna historia karty.
 
 ## Kiedy NIE stosować
-Gdy użytkownik musi natychmiast zobaczyć skutek swojej operacji (read-your-writes), a nie da się tego obejść w UI.
-Gdy obciążenie odczytów nie uzasadnia drugiej bazy.
+Gdy historia zmian nie ma wartości biznesowej, a domena to głównie CRUD. ES to zmiana paradygmatu:
+wersjonowanie zdarzeń, migracje przez upcasting, RODO (prawo do usunięcia danych w niezmiennym logu), obowiązkowe modele odczytu.
 
 ## Pytania do dyskusji
-- Jak pokazać użytkownikowi świeże dane zaraz po zapisie (odpowiedź z komendy, wersja, polling)?
-- Co, jeśli projekcja ma błąd i przez tydzień liczyła saldo źle?
-- Czy zdarzenia „pod projekcje” (z kompletem danych) to dobre zdarzenia domenowe?
+- Jak zmienić format zdarzenia zapisanego dwa lata temu (upcasting, wersje, kopiowanie strumieni)?
+- Jak „cofnąć” błędną transakcję w świecie, w którym zdarzeń się nie usuwa?
+- Gdzie w Waszym systemie historia zmian jest ważniejsza niż bieżący stan?
 
 ## Uruchomienie
 ```bash
-./mvnw test                         # testy MongoDB wymagają Dockera
+./mvnw test                         # testy MongoDB/PostgreSQL wymagają Dockera
 docker compose up -d mongo
 ./mvnw spring-boot:run
 ```
+
+---
+
+## Ćwiczenie „blog”, część 4 (koniec ścieżki CQRS/ES)
+1. Rozdziel w blogu zapis od odczytu: komendy (utwórz, opublikuj, skomentuj) przez use case'y, a zapytania („po kategorii”, „po tagach”) jako osobny model odczytu.
+2. Zbuduj model odczytu ze zdarzeń (`ArticlePublished`, `CommentAdded`, `ArticleLiked`) w osobnej kolekcji lub tabeli, idempotentnie.
+3. Dla chętnych: przechowuj `Article` jako strumień zdarzeń i dodaj endpoint „stan artykułu na dzień X” (replay do daty).

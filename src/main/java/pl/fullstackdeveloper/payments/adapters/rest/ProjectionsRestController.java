@@ -6,7 +6,7 @@ import pl.fullstackdeveloper.payments.queries.CardProjectionRebuilder;
 
 import java.util.Map;
 
-// Operacja administracyjna: przebudowa modelu odczytu ze źródła prawdy
+// Operacja administracyjna: przebudowa modelu odczytu przez replay wszystkich zdarzeń
 @RestController
 class ProjectionsRestController {
 
@@ -18,7 +18,7 @@ class ProjectionsRestController {
 
     @PostMapping("api/admin/projections/cards/rebuild")
     Map<String, Long> rebuild() {
-        return Map.of("cards", rebuilder.rebuild());
+        return Map.of("replayedEvents", rebuilder.rebuild());
     }
 
 }

@@ -6,6 +6,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.payments.application.PaymentsEvent;
+import pl.fullstackdeveloper.payments.application.PaymentsEventHistory;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
@@ -78,7 +79,8 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule read_side_is_independent_of_write_model = noClasses().that().resideInAPackage("..payments.queries..")
             .should().dependOnClassesThat().resideInAnyPackage(DOMAIN, ADAPTERS)
-            .orShould().dependOnClassesThat(resideInAPackage(APPLICATION).and(not(assignableTo(PaymentsEvent.class))))
+            .orShould().dependOnClassesThat(resideInAPackage(APPLICATION)
+                    .and(not(assignableTo(PaymentsEvent.class))).and(not(assignableTo(PaymentsEventHistory.class))))
             .because("strona zapytań zna wyłącznie zdarzenia strony zapisu, z których buduje projekcje");
 
     // --- brak cykli między pakietami
@@ -113,7 +115,8 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule jpa_entities_are_hidden_in_adapter = classes().that().areAnnotatedWith(jakarta.persistence.Entity.class)
             .should().resideInAPackage("..adapters.persistence..")
-            .andShould().notBePublic();
+            .andShould().notBePublic()
+            .allowEmptyShould(true); // od 19 (Event Sourcing) płatności nie mają encji JPA
 
     @ArchTest
     static final ArchRule adapters_are_marked = classes().that().resideInAPackage(ADAPTERS)

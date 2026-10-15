@@ -28,7 +28,7 @@ public class AddCardService implements AddCardUseCase {
         var expiration = dateTimeProvider.getZonedDateTime().toLocalDate().plusYears(CARD_VALIDITY_IN_YEARS);
         var card = new Card(new CardId(), cardNumberGenerator.getNext(), expiration, command.currency());
         cardRepository.save(card);
-        eventPublisher.publish(new CardAdded(card.getNumber().value(), card.getExpiration(), card.getCurrency().getCurrencyCode()));
+        card.pullEvents().stream().map(PaymentsEvents::from).forEach(eventPublisher::publish);
         return card.getNumber();
     }
 

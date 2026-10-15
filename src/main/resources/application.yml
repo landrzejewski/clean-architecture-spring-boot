@@ -8,6 +8,9 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: create-drop
+  sql:
+    init:
+      mode: always          # schema.sql - tabele event store
   messages:
     basename: exceptions
     fallback-to-system-locale: false
@@ -20,6 +23,7 @@ spring:
       republish-outstanding-events-on-restart: true
 payments:
   card-number-length: 16
+  snapshot-frequency: 10     # migawka co N zdarzeń
   exchange-rates:
     provider: fixed          # fixed | nbp
   import:
@@ -40,11 +44,3 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
----
-spring:
-  config:
-    activate:
-      on-profile: jdbc
-logging:
-  level:
-    org.springframework.jdbc.core: debug

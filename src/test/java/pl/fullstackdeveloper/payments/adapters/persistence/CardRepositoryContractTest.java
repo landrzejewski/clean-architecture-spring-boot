@@ -16,7 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /*
  Test kontraktu portu CardRepository - te same scenariusze uruchamiamy dla każdej implementacji
- (JPA i JDBC). Gwarantuje to, że adaptery są naprawdę wymienne.
+ (JPA i JDBC w 08-18, event store od 19).
+ Gwarantuje to, że adaptery są naprawdę wymienne - także zmiana modelu utrwalania na Event Sourcing.
  */
 abstract class CardRepositoryContractTest {
 
@@ -50,7 +51,7 @@ abstract class CardRepositoryContractTest {
         });
 
         var reloaded = inTransaction(() -> cardRepository.findByNumber(card.getNumber()).orElseThrow());
-        assertThat(reloaded.getTransactions()).hasSize(2);
+        assertThat(reloaded.getTransactionsCount()).isEqualTo(2);
         assertThat(reloaded.getBalance()).isEqualTo(Money.of("30", "PLN"));
     }
 
