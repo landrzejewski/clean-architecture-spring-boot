@@ -1,40 +1,50 @@
 /*
- Model C4 systemu płatności - Structurizr DSL.
+ Model C4 systemu - Structurizr DSL (stan: 10-second-context-naive).
  Podgląd: docker run -it --rm -p 8080:8080 -v $(pwd)/docs/c4:/usr/local/structurizr structurizr/lite
  */
-workspace "Payments" "Przykład ze szkolenia Clean Architecture" {
+workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
 
     model {
-        customer = person "Klient" "Posiadacz karty płatniczej"
-        operator = person "Operator" "Pracownik obsługujący karty"
+        customer = person "Klient" "Składa zamówienia, płaci kartą"
+        operator = person "Operator" "Wydaje karty, przegląda transakcje"
+        nbp = softwareSystem "NBP API" "Kursy walut (tabela A)" "External"
 
-        payments = softwareSystem "Payments" "Wydawanie kart i rejestracja transakcji" {
-            app = container "Payments Application" "Use case'y i model domeny" "Java" {
-                domain = component "Domain" "Card, Money, Transaction - reguły biznesowe" "Java"
-                application = component "Application" "Use case'y, porty wejściowe i wyjściowe" "Java"
-                adapters = component "Adapters" "Implementacje portów (in-memory, konsola)" "Java"
+        shop = softwareSystem "Shop" "Zamówienia i płatności kartą" {
+            app = container "Shop Application" "Monolit Spring Boot" "Java 25, Spring Boot 4" {
+                orders = component "Orders" "Składanie zamówień" "orders.*"
+                payments = component "Payments" "Karty, transakcje, przeliczanie walut" "payments.*"
             }
+            db = container "Database" "Karty i transakcje" "PostgreSQL / H2" "Database"
         }
 
-        customer -> payments "Płaci kartą"
-        operator -> payments "Wydaje karty, przegląda transakcje"
-        operator -> app "Wywołuje use case'y"
-        adapters -> application "Implementuje porty"
-        application -> domain "Deleguje logikę"
+        customer -> orders "Składa zamówienie" "REST"
+        operator -> payments "Zarządza kartami" "REST"
+        orders -> payments "Obciąża kartę (bezpośrednio przez CardRepository i Card!)"
+        payments -> orders "Pokazuje zamówienia karty (cykl!)"
+        payments -> db "Czyta i zapisuje" "JPA / JDBC"
+        payments -> nbp "Pobiera kursy" "HTTPS/JSON"
     }
 
     views {
-        systemContext payments "Context" {
+        systemContext shop "Context" {
             include *
             autolayout lr
         }
-        container payments "Containers" {
+        container shop "Containers" {
             include *
             autolayout lr
         }
         component app "Components" {
             include *
             autolayout lr
+        }
+        styles {
+            element "External" {
+                background #999999
+            }
+            element "Database" {
+                shape cylinder
+            }
         }
     }
 

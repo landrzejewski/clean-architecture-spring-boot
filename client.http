@@ -66,3 +66,17 @@ Content-Type: application/json
   "amount": 10,
   "currencyCode": "EUR"
 }
+
+### Zamówienie opłacone kartą
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "description": "Pizza",
+  "cardNumber": "{{number}}",
+  "amount": 40,
+  "currencyCode": "PLN"
+}
+
+### Zamówienia karty (cykl payments -> orders)
+GET http://localhost:8080/api/cards/{{number}}/orders
