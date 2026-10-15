@@ -22,6 +22,13 @@ class ArchitectureTest {
     }
 
     @Test
+    void domain_and_application_do_not_depend_on_frameworks() {
+        noClasses().that().resideInAnyPackage("..payments.domain..", "..payments.application..")
+                .should().dependOnClassesThat().resideInAnyPackage("org.springframework..", "jakarta.persistence..")
+                .check(classes);
+    }
+
+    @Test
     void application_does_not_depend_on_adapters() {
         noClasses().that().resideInAPackage("..payments.application..")
                 .should().dependOnClassesThat().resideInAPackage("..payments.adapters..")

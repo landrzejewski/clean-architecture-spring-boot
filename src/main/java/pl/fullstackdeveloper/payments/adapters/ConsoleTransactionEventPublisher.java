@@ -1,11 +1,13 @@
 package pl.fullstackdeveloper.payments.adapters;
 
+import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.payments.application.TransactionAdded;
 import pl.fullstackdeveloper.payments.application.TransactionEventPublisher;
 
 import java.util.logging.Logger;
 
-public final class ConsoleTransactionEventPublisher implements TransactionEventPublisher {
+@Adapter
+final class ConsoleTransactionEventPublisher implements TransactionEventPublisher {
 
     private static final Logger LOGGER = Logger.getLogger(ConsoleTransactionEventPublisher.class.getName());
 

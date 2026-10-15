@@ -1,5 +1,6 @@
 package pl.fullstackdeveloper.payments.adapters;
 
+import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.common.PageSpec;
 import pl.fullstackdeveloper.common.ResultPage;
 import pl.fullstackdeveloper.payments.application.CardRepository;
@@ -11,7 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class HashMapCardRepository implements CardRepository {
+@Adapter
+final class HashMapCardRepository implements CardRepository {
 
     private final Map<CardNumber, Card> cards = new ConcurrentHashMap<>();
 
