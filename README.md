@@ -1,60 +1,48 @@
-# 03 – Porównanie architektur: warstwowa, onion, heksagonalna, czysta
+# 04 – Zagadnienia przekrojowe „ręcznie”: Decorator, Proxy, Factory, Facade
 
-> Moduł 1: Dlaczego architektura · poprzedni: `02-use-cases-and-ports` · następny: `04-cross-cutting-by-hand`
+> Moduł 2: Implementacja · poprzedni: `03-architectures-compared` · następny: `05-spring-as-detail`
 
 ## Cel
-Zobaczyć **ten sam przypadek użycia** („doładuj kartę”) w czterech stylach i zrozumieć, że onion,
-heksagonalna i czysta architektura różnią się nazewnictwem i akcentami, ale mają **tę samą regułę zależności**:
-zależności wskazują do środka, w stronę logiki biznesowej.
+Pokazać, jak oddzielić zagadnienia przekrojowe (logowanie, pomiar czasu, transakcje) od logiki biznesowej
+**bez frameworka**, używając klasycznych wzorców GoF. W `05` zobaczymy, że Spring AOP robi dokładnie to samo.
+
+## Problem z poprzedniego kroku
+Use case'y potrzebują transakcji i logowania. Wpisanie tego do `AddTransactionService` zmieszałoby logikę
+aplikacji z infrastrukturą i powieliło ten sam kod w każdym use case.
 
 ## Co się zmieniło
 ```bash
-git diff 02-use-cases-and-ports..03-architectures-compared --stat
+git diff 03-architectures-compared..04-cross-cutting-by-hand --stat
 ```
-- `src/main/java/pl/fullstackdeveloper/compare/{layered,onion,hexagonal,clean}`: cztery samodzielne warianty.
-- `src/test/java/pl/fullstackdeveloper/compare/*ArchitectureTest`: reguły ArchUnit opisujące każdy styl i test działania.
-- `payments/ArchitectureTest`: pierwsze reguły ArchUnit dla właściwej aplikacji.
 
-## Porównanie
-| | Warstwowa | Onion | Heksagonalna (Ports & Adapters) | Czysta (Clean) |
-|---|---|---|---|---|
-| Autor / rok | klasyka n-tier | J. Palermo, 2008 | A. Cockburn, 2005 | R. C. Martin, 2012 |
-| Kierunek zależności | z góry w dół, logika → baza | do środka | do środka | do środka |
-| Gdzie interfejs repozytorium | w warstwie danych | domain services | port wyjściowy w aplikacji | gateway w use cases |
-| Akcent | podział techniczny | pierścienie modelu | symetria: porty wejściowe i wyjściowe, wymienne adaptery | granice (boundaries), presenter, przepływ vs zależności |
-| Reguła ArchUnit | `layeredArchitecture()` | `onionArchitecture()` | `noClasses()...adapter` | `layeredArchitecture()` z pierścieniami |
+| Wzorzec | Klasa | Rola |
+|---|---|---|
+| Decorator | `adapters/decorators/LoggingAddTransactionUseCase` | statyczny dekorator jednego interfejsu |
+| Proxy (JDK dynamic proxy) | `common/proxy/Proxies` | generyczny proxy dla dowolnego interfejsu |
+| Chain of Responsibility | `Proxies.Invocation.proceed()` | łańcuch interceptorów w jednym proxy |
+| Interceptory | `LoggingInterceptor`, `TimerInterceptor`, `AtomicInterceptor` | aspekty sterowane adnotacjami `@Atomic`, `@Timer` |
+| Abstract Factory | `PaymentsFactory`, `DevPaymentsFactory`, `TestPaymentsFactory` (test) | spójne rodziny implementacji portów |
+| Facade | `PaymentsFacade` | jeden punkt wejścia do modułu, ukrywa składanie obiektów |
 
 ## Na co zwrócić uwagę
-- **Warstwowa**: `CardService` importuje `CardDao`, czyli logika zależy od persystencji. To jedyny wariant, w którym tak jest.
-- **Onion**: interfejs `CardRepository` należy do pierścienia `domain.services`.
-- **Heksagonalna**: wąskie porty `LoadCardPort` i `SaveCardPort` (ISP). Kontroler zna tylko port wejściowy `TopUpUseCase`.
-- **Czysta**: interaktor niczego nie zwraca. Wynik trafia do prezentera przez `TopUpOutputBoundary`, więc sterowanie płynie na zewnątrz, a zależność wskazuje do środka.
-- W dalszej części szkolenia używamy stylu z `02` (heksagonalny z pakietami `domain/application/adapters`). Zasady są te same.
+- Adnotacje `@Atomic` i `@Timer` deklarują *intencję* i nie zależą od żadnej technologii. Warstwa aplikacji nadal nie zna infrastruktury.
+- JDK proxy działa tylko dla interfejsów. To praktyczny argument za portami wejściowymi.
+- Zagnieżdżanie proxy w proxy ukrywa adnotacje celu (interceptor widzi `$Proxy0`). Dlatego `Proxies` buduje **łańcuch interceptorów w jednym proxy**, tak jak Spring AOP.
+- Kolejność interceptorów ma znaczenie. Czy pomiar czasu ma obejmować commit transakcji?
+- Zdarzenie `TransactionAdded` jest publikowane **przed commitem**. Co się stanie, gdy commit się nie powiedzie? Wrócimy do tego w `15` (outbox).
+- `AtomicInterceptorTest` pokazuje commit, rollback i ponowne rzucenie oryginalnego wyjątku.
 
 ## Kiedy NIE stosować
-Pełny zestaw boundary, presenter i view model z Clean Architecture opłaca się przy wielu kanałach prezentacji.
-Dla REST API zwykle wystarczy, że use case zwraca model wyjściowy.
+Ręczne proxy to materiał dydaktyczny. W aplikacji Spring używamy AOP (`05`). Własne interceptory mają sens
+w bibliotekach bez frameworka albo tam, gdzie liczy się kontrola nad kolejnością i kosztem.
 
 ## Pytania do dyskusji
-- Który styl jest najbliższy temu, co macie dziś w projektach?
-- Czy różnica między onion a heksagonalną to coś więcej niż nazwy pakietów?
-
----
-
-## Ćwiczenie „blog”, część 1 (koniec modułu 1)
-Zbuduj **domenę i warstwę aplikacji** bloga w czystej Javie, wzorując się na `payments`.
-
-Przypadki użycia autora: utwórz artykuł, zmień artykuł, opublikuj artykuł, usuń artykuł.
-Przypadki użycia czytelnika: polub / nie lub artykułu, dodaj komentarz, znajdź artykuły po kategorii, znajdź artykuły po tagach.
-
-Wymagania:
-1. Agregat `Article` pilnuje niezmienników, np. nie można komentować nieopublikowanego artykułu, a tytuł jest wymagany. VO: `ArticleId`, `Title`, `Tag`, `Category`.
-2. Porty wejściowe (`*UseCase` + komendy) i wyjściowe (`ArticleRepository`, `DateTimeProvider`).
-3. Adaptery in-memory i composition root w `main()`.
-4. Testy domeny i use case'ów bez frameworka oraz reguła ArchUnit „domain nie zależy od application/adapters”.
+- Jaka jest różnica między Decorator a Proxy, skoro implementacja wygląda podobnie?
+- Co tracimy, gdy logika transakcyjna jest „niewidoczna” w kodzie use case'u?
+- Dlaczego wywołanie metody `this.inna()` wewnątrz obiektu omija proxy? (self-invocation)
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw -q compile && java -cp target/classes pl.fullstackdeveloper.compare.clean.frameworks.ConsoleApp
+./mvnw -q compile && java -cp target/classes pl.fullstackdeveloper.Application
 ```

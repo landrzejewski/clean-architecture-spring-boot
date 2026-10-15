@@ -1,9 +1,11 @@
 package pl.fullstackdeveloper.payments.application;
 
+import pl.fullstackdeveloper.common.annotations.Atomic;
 import pl.fullstackdeveloper.payments.domain.Card;
 import pl.fullstackdeveloper.payments.domain.CardId;
 import pl.fullstackdeveloper.payments.domain.CardNumber;
 
+@Atomic
 public class AddCardService implements AddCardUseCase {
 
     private static final int CARD_VALIDITY_IN_YEARS = 1;

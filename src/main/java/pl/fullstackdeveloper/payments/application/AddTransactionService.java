@@ -1,5 +1,7 @@
 package pl.fullstackdeveloper.payments.application;
 
+import pl.fullstackdeveloper.common.annotations.Atomic;
+import pl.fullstackdeveloper.common.annotations.Timer;
 import pl.fullstackdeveloper.payments.domain.Card;
 import pl.fullstackdeveloper.payments.domain.Transaction;
 import pl.fullstackdeveloper.payments.domain.TransactionId;
@@ -22,6 +24,8 @@ public class AddTransactionService implements AddTransactionUseCase {
         this.cardRepository = cardRepository;
     }
 
+    @Atomic
+    @Timer
     @Override
     public TransactionId handle(final AddTransactionCommand command) {
         var card = findCard(command);
