@@ -1,8 +1,10 @@
 package pl.fullstackdeveloper.payments.application;
 
+import pl.fullstackdeveloper.common.annotations.Atomic;
 import pl.fullstackdeveloper.common.PageSpec;
 import pl.fullstackdeveloper.common.ResultPage;
 
+@Atomic(readOnly = true)
 public class GetCardsService implements GetCardsUseCase {
 
     private final CardRepository cardRepository;

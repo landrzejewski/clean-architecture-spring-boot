@@ -1,6 +1,10 @@
 spring:
   datasource:
     url: jdbc:h2:mem:payments
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
   messages:
     basename: exceptions
     fallback-to-system-locale: false
@@ -9,3 +13,15 @@ spring:
       enabled: true
 payments:
   card-number-length: 16
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payments
+    username: admin
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: update

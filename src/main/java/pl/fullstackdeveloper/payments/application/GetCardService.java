@@ -1,7 +1,9 @@
 package pl.fullstackdeveloper.payments.application;
 
+import pl.fullstackdeveloper.common.annotations.Atomic;
 import pl.fullstackdeveloper.payments.domain.CardNumber;
 
+@Atomic(readOnly = true)
 public class GetCardService implements GetCardUseCase {
 
     private final CardRepository cardRepository;

@@ -1,6 +1,7 @@
 package pl.fullstackdeveloper.payments.application;
 
 import pl.fullstackdeveloper.common.annotations.Atomic;
+import pl.fullstackdeveloper.common.annotations.Retry;
 import pl.fullstackdeveloper.common.annotations.Timer;
 import pl.fullstackdeveloper.payments.domain.Card;
 import pl.fullstackdeveloper.payments.domain.Transaction;
@@ -24,6 +25,8 @@ public class AddTransactionService implements AddTransactionUseCase {
         this.cardRepository = cardRepository;
     }
 
+    // konflikt współbieżnej modyfikacji karty -> ponów cały use case w nowej transakcji
+    @Retry(on = CardModifiedConcurrentlyException.class)
     @Atomic
     @Timer
     @Override

@@ -14,6 +14,9 @@ public interface CardRepository {
 
     ResultPage<Card> findAll(PageSpec pageSpec);
 
+    /**
+     * @throws CardModifiedConcurrentlyException gdy karta została w międzyczasie zmieniona przez inną transakcję
+     */
     Card save(Card card);
 
 }
