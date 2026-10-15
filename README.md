@@ -1,42 +1,52 @@
-# 00 – Architektura warstwowa i anemiczny model
+# 01 – Bogaty model domeny
 
-> Moduł 1: Dlaczego architektura · następny krok: `01-rich-domain`
+> Moduł 1: Dlaczego architektura · poprzedni: `00-layered-anemic` · następny: `02-use-cases-and-ports`
 
 ## Cel
-Pokazać typową aplikację Spring Boot zbudowaną „na skróty”: `Controller → Service → Repository`, w której
-encja JPA jest jednocześnie modelem domeny, kontraktem REST i strukturą tabeli. To punkt wyjścia do całego szkolenia.
+Przenieść reguły biznesowe z serwisu (Transaction Script) do modelu domeny, który sam pilnuje swojej poprawności.
+Model powstaje w **czystej Javie**: bez Springa, JPA i bazy danych.
 
-## Co tu jest
-| Warstwa | Klasa | Rola |
+## Problem z poprzedniego kroku
+W `00` reguły (saldo, waluta, data ważności) siedziały w `CardService`, encja była workiem na dane,
+a test jednej reguły wymagał kontekstu Springa.
+
+## Co się zmieniło
+```bash
+git diff 00-layered-anemic..01-rich-domain --stat
+```
+Kod z `00` został usunięty. Zostaje sam model w pakiecie `payments.domain`:
+
+| Element DDD | Klasa | Uwagi |
 |---|---|---|
-| prezentacja | `controller/CardController` | REST, zwraca encje JPA |
-| logika | `service/CardService` | Transaction Script, cała logika biznesowa w `if`-ach |
-| dane | `repository/CardRepository` | Spring Data JPA |
-| model | `model/CardEntity`, `model/TransactionEntity` | anemiczne encje (gettery/settery) |
+| Agregat | `Card` | jedyny punkt zmiany salda, pilnuje niezmienników, brak setterów |
+| Value Object | `Money`, `CardNumber`, `CardId`, `TransactionId` | rekordy, walidacja w konstruktorze, porównanie po wartości |
+| Encja (w agregacie) | `Transaction` | ma tożsamość (`TransactionId`) |
+| Zdarzenie domenowe | `TransactionRegistered` | zbierane w agregacie i odbierane przez `pullEvents()` |
+| Wyjątki domenowe | `InsufficientBalanceException`, … | nazwy z języka biznesu zamiast `IllegalStateException` |
 
-Pakiety odpowiadają warstwom technicznym (package-by-layer). Zależności płyną w dół: kontroler → serwis → repozytorium → encje.
+## Na co zwrócić uwagę
+- `Card.registerTransaction()` najpierw waliduje, potem zmienia stan, a na końcu rejestruje zdarzenie. Nie da się „przypadkiem” ustawić salda.
+- `Card.restore()` odtwarza agregat z zapisanego stanu bez walidacji i bez zdarzeń. Przyda się w adapterze persystencji (`07`).
+- `Money` normalizuje skalę, więc `10 PLN == 10.00 PLN`. Operacje na różnych walutach rzucają wyjątek domenowy.
+- Testy (`CardTest`, `MoneyTest`) wykonują się w milisekundach i czytają się jak specyfikacja.
 
-## Problemy do znalezienia w kodzie
-1. **Reguły biznesowe są rozproszone i łatwe do obejścia.** Każdy może wywołać `card.setBalance(...)`, bo encja niczego nie chroni.
-2. **Logika zależy od infrastruktury**: JPA, `ZonedDateTime.now()`, `Random`, `System.out`. Test reguły „brak środków” wymaga `@SpringBootTest` i bazy (`CardServiceTest`).
-3. **Brak języka domeny**: `"IN"`/`"OUT"`, `BigDecimal` + `String currencyCode` zamiast `Money`, `IllegalStateException` zamiast wyjątków domenowych.
-4. **Kontrakt REST = schemat bazy.** Dodanie kolumny zmienia JSON zwracany klientom, a w odpowiedzi wycieka `id` z bazy.
-5. **Serwis rośnie bez końca.** Każda nowa funkcja (prowizje, limity, blokada karty) to kolejne `if`-y w `CardService`.
+## Model anemiczny vs bogaty
+| | Anemiczny (`00`) | Bogaty (`01`) |
+|---|---|---|
+| Gdzie są reguły | w serwisach | w agregatach i VO |
+| Ochrona niezmienników | brak (settery) | enkapsulacja |
+| Testy | integracyjne | jednostkowe, szybkie |
+| Język | techniczny (`"IN"`, `BigDecimal`) | domenowy (`Money`, `INFLOW`) |
 
-## Ćwiczenie (15 min)
-Dodaj **prowizję 2% za płatność (`OUT`) w walucie innej niż waluta karty**, przeliczaną po kursie z zewnętrznego źródła.
-Zanotuj, ile klas musisz zmienić, jak to przetestujesz i co się stanie, gdy kurs będzie pochodził z zewnętrznego API.
-
-## Kiedy taki układ jest w porządku
-Proste CRUD-y, prototypy, aplikacje z minimalną logiką biznesową. Architektura warstwowa nie jest zła sama w sobie.
-Problem zaczyna się, gdy logika biznesowa rośnie, a model jej nie wyraża.
+## Kiedy NIE stosować
+Gdy logiki prawie nie ma (CRUD, formularze, raporty). Bogaty model kosztuje: mapowanie, więcej klas, dyscyplinę zespołu.
 
 ## Pytania do dyskusji
-- Która zmiana w tej aplikacji byłaby najdroższa: zmiana bazy, dodanie nowego kanału (np. kolejki) czy nowa reguła biznesowa?
-- Dlaczego test jednej reguły trwa kilka sekund?
+- Gdzie przebiega granica agregatu? Czy `Transaction` powinna być osobnym agregatem?
+- Kto powinien generować `TransactionId` i znacznik czasu: domena czy warstwa wyżej?
+- Czy `Card` powinna trzymać pełną listę transakcji? Co przy milionie transakcji? Wrócimy do tego w CQRS/ES.
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw spring-boot:run   # potem żądania z client.http
 ```
