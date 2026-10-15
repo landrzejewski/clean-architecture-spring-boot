@@ -1,55 +1,56 @@
-# 12 – Moduły Maven
+# 13 – Java Platform Module System (JPMS)
 
-> Moduł 3: Modularyzacja · poprzedni: `11-language-encapsulation` · następny: `13-jpms`
+> Moduł 3: Modularyzacja · poprzedni: `12-maven-modules` · następny: `14-module-communication`
 
 ## Cel
-Przenieść granice z testów ArchUnit do **systemu budowania**. Moduł, który nie deklaruje zależności,
-nie ma klas na classpath, więc niedozwolony import po prostu się nie kompiluje.
+Dodać drugą, silniejszą warstwę hermetyzacji: **moduł eksportuje tylko wybrane pakiety**, a pozostałe są
+niewidoczne dla innych modułów, nawet jeśli klasy są `public`. Do tego jawne `requires` zamiast „wszystko, co jest na classpath”.
 
 ## Problem z poprzedniego kroku
-W `11` jedynym strażnikiem granicy „orders → tylko payments.api” był test. Kompilator pozwalał na wszystko,
-bo `payments.domain` i `payments.application` muszą być `public`.
-
-## Struktura
-```
-shop (pom)
-├── common         adnotacje, aspekty, stronicowanie, narzędzia web
-├── payments-api   PaymentsApi, PaymentRequest, PaymentResult (zero zależności)
-├── payments       domain + application + adapters płatności   → common, payments-api
-├── orders         domain + application + adapters zamówień    → common, payments-api
-└── app            Application (composition root) + testy E2E  → payments, orders
-```
-`orders` **nie zależy** od `payments`. Spróbuj dodać w `orders` pole typu `pl.fullstackdeveloper.payments.domain.Card`:
-```
-[ERROR] package pl.fullstackdeveloper.payments.domain does not exist
-```
+Moduły Maven kontrolują *które artefakty* są na classpath, ale nie *które pakiety* z nich wolno używać.
+`app` zależy od `payments`, więc mógł użyć dowolnej klasy płatności, np. agregatu `Card`.
+Zależności przechodnie też „przeciekają”: wszystko, co ciągnie `common`, jest widoczne w `orders`.
 
 ## Co się zmieniło
 ```bash
-git diff 11-language-encapsulation..12-maven-modules --stat -M
+git diff 12-maven-modules..13-jpms --stat
 ```
-- Kod przeniesiony do modułów, bez zmian w treści klas.
-- Każdy moduł jest testowany **w izolacji**:
-  - `payments` ma testową aplikację `PaymentsTestApplication`,
-  - `orders` testuje use case z fake'iem `PaymentsApi` (`PlaceOrderServiceTest`), a implementacji płatności nie ma nawet na classpath,
-  - `common` ma `CommonTestApplication` dla testów aspektów.
-- Testy przekrojowe (`OrdersIntegrationTest`, `ContextBoundariesTest`) przeniesione do `app`.
-- Pakiet `compare` z modułu 1 usunięty. Porównanie architektur znajdziesz w `03-architectures-compared`.
+| Moduł | `exports` | Uwagi |
+|---|---|---|
+| `pl.fullstackdeveloper.common` | `common`, `common.annotations`, `common.web` | `common.aop` **nie** jest eksportowany, tylko `opens` (Spring znajduje aspekty refleksją) |
+| `pl.fullstackdeveloper.payments.api` | `payments.api` | cały kontrakt |
+| `pl.fullstackdeveloper.payments` | **nic** | `open module`: refleksja tak, kompilacja nie |
+| `pl.fullstackdeveloper.orders` | **nic** | `requires payments.api`, a `payments` nie jest nawet czytelny |
+| `pl.fullstackdeveloper.app` | **nic** | composition root |
+
+- Test E2E z `app` (`OrdersIntegrationTest`) używał `AddCardUseCase` i `Money`, więc przestał się kompilować:
+  `package pl.fullstackdeveloper.payments.application is not visible`.
+  Zastąpił go `ShopEndToEndTest`, który jak każdy klient korzysta z REST.
+- `maven-surefire-plugin` dostał `useModulePath=false`: testy działają na classpath.
+
+## exports vs opens
+| | Dostęp w czasie kompilacji | Głęboka refleksja (prywatne pola) |
+|---|---|---|
+| `exports p` | tak | nie |
+| `opens p` | nie | tak |
+| `open module` | – | wszystkie pakiety |
+
+Spring, Hibernate i Jackson potrzebują refleksji, a nie dostępu w kompilacji. Dlatego moduły kontekstów są `open`
+i nic nie eksportują.
 
 ## Na co zwrócić uwagę
-- `payments-api` to osobny artefakt. W przyszłości może go używać zdalny klient (`16`).
-- `app` to jedyne miejsce, które widzi wszystko. Tu jest `spring-boot-maven-plugin` i konfiguracja (`application.yml`).
-- Granulacja: jeden moduł na kontekst, a nie na warstwę. Warstwy wewnątrz kontekstu dalej pilnuje ArchUnit (`payments/…/ArchitectureTest`).
-- `payments` nadal może sięgnąć do wnętrza `orders`? Nie, bo nie ma go w zależnościach. Kierunek jest wymuszony.
+- JPMS w aplikacji Spring Boot działa przede wszystkim **w czasie kompilacji**. Fat jar uruchamia się na classpath, a tam moduły nie obowiązują.
+- Pełne uruchomienie na module path jest możliwe, ale wymaga dopięcia `opens`/`requires` dla wszystkich bibliotek. Koszt utrzymania jest wysoki.
+- JPMS ma też mechanizm usług: `provides PaymentsApi with …` / `uses PaymentsApi` (ServiceLoader), czyli DI bez frameworka.
+- Nazwy modułów bibliotek Springa to *automatic modules* (`Automatic-Module-Name` w manifeście, np. `spring.context`).
 
 ## Kiedy NIE stosować
-Każdy moduł Maven zwiększa czas buildu i liczbę plików konfiguracji. Moduł per warstwa (`domain`, `application`, `adapters`)
-w każdym kontekście szybko daje kilkanaście modułów, więc warto zacząć od modułu per kontekst.
+Gdy zespół nie zna JPMS albo biblioteki źle wspierają module path. Podobny efekt (bez refleksyjnych niespodzianek)
+daje kombinacja modułów Maven, ArchUnit i Spring Modulith (`15`).
 
 ## Pytania do dyskusji
-- Moduł per kontekst czy per warstwa? A może oba (np. `payments-domain` bez Springa)?
-- Co powinno trafić do `common`, a co jest „shared kernel”, który wiąże konteksty?
-- Jak wersjonować `payments-api`, gdy korzysta z niego wiele zespołów?
+- Czy warto płacić złożonością `module-info` za ochronę, którą daje też ArchUnit?
+- Dlaczego test E2E przez REST jest lepszy niż test, który zna klasy use case'ów?
 
 ## Uruchomienie
 ```bash

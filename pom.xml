@@ -34,6 +34,22 @@
         <archunit.version>1.4.1</archunit.version>
     </properties>
 
+    <build>
+        <plugins>
+            <!--
+             JPMS pilnuje granic w czasie kompilacji. Testy (i aplikację Spring Boot uruchamianą z fat jara)
+             wykonujemy na classpath - frameworki testowe i Spring intensywnie używają refleksji.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
