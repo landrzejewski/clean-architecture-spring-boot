@@ -1,43 +1,58 @@
-# 11 – Hermetyzacja na poziomie języka
+# 12 – Moduły Maven
 
-> Moduł 3: Modularyzacja · poprzedni: `10-second-context-naive` · następny: `12-maven-modules`
+> Moduł 3: Modularyzacja · poprzedni: `11-language-encapsulation` · następny: `13-jpms`
 
 ## Cel
-Naprawić problemy z `10` środkami samego języka Java i testów: wąski publiczny kontrakt modułu,
-ukrycie implementacji (package-private), zamknięte hierarchie (`sealed`) i brak cykli.
+Przenieść granice z testów ArchUnit do **systemu budowania**. Moduł, który nie deklaruje zależności,
+nie ma klas na classpath, więc niedozwolony import po prostu się nie kompiluje.
+
+## Problem z poprzedniego kroku
+W `11` jedynym strażnikiem granicy „orders → tylko payments.api” był test. Kompilator pozwalał na wszystko,
+bo `payments.domain` i `payments.application` muszą być `public`.
+
+## Struktura
+```
+shop (pom)
+├── common         adnotacje, aspekty, stronicowanie, narzędzia web
+├── payments-api   PaymentsApi, PaymentRequest, PaymentResult (zero zależności)
+├── payments       domain + application + adapters płatności   → common, payments-api
+├── orders         domain + application + adapters zamówień    → common, payments-api
+└── app            Application (composition root) + testy E2E  → payments, orders
+```
+`orders` **nie zależy** od `payments`. Spróbuj dodać w `orders` pole typu `pl.fullstackdeveloper.payments.domain.Card`:
+```
+[ERROR] package pl.fullstackdeveloper.payments.domain does not exist
+```
 
 ## Co się zmieniło
 ```bash
-git diff 10-second-context-naive..11-language-encapsulation --stat
+git diff 11-language-encapsulation..12-maven-modules --stat -M
 ```
-| Problem z 10 | Rozwiązanie w 11 |
-|---|---|
-| `orders` używa `CardRepository` i `Card` | `payments.api.PaymentsApi` + `PaymentRequest` / `PaymentResult` (typy proste) |
-| Ominięty use case płatności | `PaymentsApiAdapter` (package-private) woła `AddTransactionUseCase` |
-| Wyjątki domenowe płatności w zamówieniach | `sealed interface PaymentResult { Completed, Rejected }` + `switch` z pattern matching |
-| Cykl przez `GetCardOrdersRestController` | endpoint przeniesiony do `orders`: `GET /api/orders?cardNumber=…` |
-| `Order` używa `Money`, `CardNumber` z payments | własne VO zamówień: `Price`, `CardReference` |
-| Reguły wyłączone | `ContextBoundariesTest` włączony: brak cykli, `orders → payments.api` only |
-
-Dodatkowo `DomainException` jest `sealed` z jawną listą dozwolonych wyjątków.
+- Kod przeniesiony do modułów, bez zmian w treści klas.
+- Każdy moduł jest testowany **w izolacji**:
+  - `payments` ma testową aplikację `PaymentsTestApplication`,
+  - `orders` testuje use case z fake'iem `PaymentsApi` (`PlaceOrderServiceTest`), a implementacji płatności nie ma nawet na classpath,
+  - `common` ma `CommonTestApplication` dla testów aspektów.
+- Testy przekrojowe (`OrdersIntegrationTest`, `ContextBoundariesTest`) przeniesione do `app`.
+- Pakiet `compare` z modułu 1 usunięty. Porównanie architektur znajdziesz w `03-architectures-compared`.
 
 ## Na co zwrócić uwagę
-- `PlaceOrderService` używa `switch` po `PaymentResult` bez `default`. Kompilator wymusi obsługę nowego przypadku.
-- `PlaceOrderService` nie ma `@Atomic`. Płatność commituje się we własnej transakcji modułu płatności. **Jedna transakcja na moduł** to fundament późniejszej komunikacji przez zdarzenia (`14`, `15`).
-- **Ograniczenie Javy**: package-private działa tylko w obrębie jednego pakietu. `payments.domain` i `payments.application` muszą być `public`, bo korzystają z nich inne pakiety płatności. Kompilator nie zabroni `orders` ich użycia, więc granicę pilnuje tylko test ArchUnit.
-- `OrdersIntegrationTest`: zamówienie w EUR jest teraz opłacane, bo działa logika walut z use case'u.
+- `payments-api` to osobny artefakt. W przyszłości może go używać zdalny klient (`16`).
+- `app` to jedyne miejsce, które widzi wszystko. Tu jest `spring-boot-maven-plugin` i konfiguracja (`application.yml`).
+- Granulacja: jeden moduł na kontekst, a nie na warstwę. Warstwy wewnątrz kontekstu dalej pilnuje ArchUnit (`payments/…/ArchitectureTest`).
+- `payments` nadal może sięgnąć do wnętrza `orders`? Nie, bo nie ma go w zależnościach. Kierunek jest wymuszony.
 
 ## Kiedy NIE stosować
-Osobny kontrakt API w monolicie ma sens, gdy moduły rozwijają różne osoby lub zespoły albo planujemy wydzielenie.
-Dla dwóch małych pakietów w jednym zespole może wystarczyć konwencja.
+Każdy moduł Maven zwiększa czas buildu i liczbę plików konfiguracji. Moduł per warstwa (`domain`, `application`, `adapters`)
+w każdym kontekście szybko daje kilkanaście modułów, więc warto zacząć od modułu per kontekst.
 
 ## Pytania do dyskusji
-- `PaymentResult.Rejected` czy wyjątek? Kiedy odrzucenie jest „normalnym” wynikiem?
-- Czy `CardReference` to dobra nazwa? Jak język zamówień różni się od języka płatności?
-- Kto jest właścicielem kontraktu `payments.api`: dostawca czy konsument?
+- Moduł per kontekst czy per warstwa? A może oba (np. `payments-domain` bez Springa)?
+- Co powinno trafić do `common`, a co jest „shared kernel”, który wiąże konteksty?
+- Jak wersjonować `payments-api`, gdy korzysta z niego wiele zespołów?
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw spring-boot:run
+./mvnw -DskipTests package && java -jar app/target/app-1.0-SNAPSHOT.jar
 ```
