@@ -1,52 +1,50 @@
-# 01 – Bogaty model domeny
+# 02 – Use case'y, porty i adaptery
 
-> Moduł 1: Dlaczego architektura · poprzedni: `00-layered-anemic` · następny: `02-use-cases-and-ports`
+> Moduł 1: Dlaczego architektura · poprzedni: `01-rich-domain` · następny: `03-architectures-compared`
 
 ## Cel
-Przenieść reguły biznesowe z serwisu (Transaction Script) do modelu domeny, który sam pilnuje swojej poprawności.
-Model powstaje w **czystej Javie**: bez Springa, JPA i bazy danych.
+Dodać warstwę aplikacji wokół domeny: use case'y z kontraktami (porty wejściowe), zależności wyrażone
+jako interfejsy (porty wyjściowe) i pierwsze adaptery. Całość składamy ręcznie, nadal bez frameworka.
 
 ## Problem z poprzedniego kroku
-W `00` reguły (saldo, waluta, data ważności) siedziały w `CardService`, encja była workiem na dane,
-a test jednej reguły wymagał kontekstu Springa.
+Model z `01` jest poprawny, ale nikt go nie wywołuje. Potrzebujemy miejsca, które pobierze kartę, zarejestruje
+transakcję, zapisze zmiany i powiadomi resztę systemu, i to bez wiedzy o bazie, zegarze czy kolejce.
 
 ## Co się zmieniło
 ```bash
-git diff 00-layered-anemic..01-rich-domain --stat
+git diff 01-rich-domain..02-use-cases-and-ports --stat
 ```
-Kod z `00` został usunięty. Zostaje sam model w pakiecie `payments.domain`:
 
-| Element DDD | Klasa | Uwagi |
+| Rola | Typy | Pakiet |
 |---|---|---|
-| Agregat | `Card` | jedyny punkt zmiany salda, pilnuje niezmienników, brak setterów |
-| Value Object | `Money`, `CardNumber`, `CardId`, `TransactionId` | rekordy, walidacja w konstruktorze, porównanie po wartości |
-| Encja (w agregacie) | `Transaction` | ma tożsamość (`TransactionId`) |
-| Zdarzenie domenowe | `TransactionRegistered` | zbierane w agregacie i odbierane przez `pullEvents()` |
-| Wyjątki domenowe | `InsufficientBalanceException`, … | nazwy z języka biznesu zamiast `IllegalStateException` |
+| Porty wejściowe (driving) | `AddCardUseCase`, `AddTransactionUseCase`, `GetCardUseCase`, `GetCardsUseCase` | `application` |
+| Komendy (self-validating) | `AddCardCommand`, `AddTransactionCommand` | `application` |
+| Implementacje use case'ów | `*Service` | `application` |
+| Model wyjściowy | `CardView` | `application` |
+| Porty wyjściowe (driven) | `CardRepository`, `DateTimeProvider`, `CardNumberGenerator`, `TransactionEventPublisher` | `application` |
+| Adaptery | `HashMapCardRepository`, `SystemDateTimeProvider`, `RandomCardNumberGenerator`, `ConsoleTransactionEventPublisher` | `adapters` |
+| Composition root | `Application.main` | root |
+
+Kierunek zależności: `adapters → application → domain`. Domena nie zna nikogo.
 
 ## Na co zwrócić uwagę
-- `Card.registerTransaction()` najpierw waliduje, potem zmienia stan, a na końcu rejestruje zdarzenie. Nie da się „przypadkiem” ustawić salda.
-- `Card.restore()` odtwarza agregat z zapisanego stanu bez walidacji i bez zdarzeń. Przyda się w adapterze persystencji (`07`).
-- `Money` normalizuje skalę, więc `10 PLN == 10.00 PLN`. Operacje na różnych walutach rzucają wyjątek domenowy.
-- Testy (`CardTest`, `MoneyTest`) wykonują się w milisekundach i czytają się jak specyfikacja.
-
-## Model anemiczny vs bogaty
-| | Anemiczny (`00`) | Bogaty (`01`) |
-|---|---|---|
-| Gdzie są reguły | w serwisach | w agregatach i VO |
-| Ochrona niezmienników | brak (settery) | enkapsulacja |
-| Testy | integracyjne | jednostkowe, szybkie |
-| Język | techniczny (`"IN"`, `BigDecimal`) | domenowy (`Money`, `INFLOW`) |
+- `AddTransactionService` nie ma ani jednej reguły biznesowej, bo tylko orkiestruje. Reguły są w `Card`.
+- Zdarzenie domenowe `TransactionRegistered` zostaje w module. Na zewnątrz idzie zdarzenie aplikacyjne `TransactionAdded` z typami prostymi.
+- `AddTransactionServiceTest` używa fake'ów portów (`InMemoryCardRepository`, lambda jako `DateTimeProvider`), więc czas jest w pełni kontrolowany.
+- Nie ma frameworka, a mimo to mamy wstrzykiwanie zależności (IoC/DI przez konstruktor).
+- Dokumentacja: `docs/adr` (decyzje) i `docs/c4/workspace.dsl` (model C4: Context, Container, Component).
 
 ## Kiedy NIE stosować
-Gdy logiki prawie nie ma (CRUD, formularze, raporty). Bogaty model kosztuje: mapowanie, więcej klas, dyscyplinę zespołu.
+- Interfejs dla use case'u, który ma jedną implementację, to koszt. Wiele zespołów pomija porty wejściowe i wstrzykuje klasę use case'u. To świadomy kompromis.
+- Proste CRUD-y nie potrzebują portów dla każdej operacji.
 
 ## Pytania do dyskusji
-- Gdzie przebiega granica agregatu? Czy `Transaction` powinna być osobnym agregatem?
-- Kto powinien generować `TransactionId` i znacznik czasu: domena czy warstwa wyżej?
-- Czy `Card` powinna trzymać pełną listę transakcji? Co przy milionie transakcji? Wrócimy do tego w CQRS/ES.
+- Kto jest właścicielem interfejsu `CardRepository`: warstwa aplikacji czy adapter? Dlaczego to ważne (DIP)?
+- Czy `CardView` to nadmiarowe mapowanie? Co by się stało, gdyby use case zwracał `Card`?
+- Gdzie walidować dane wejściowe: w kontrolerze, w komendzie czy w domenie?
 
 ## Uruchomienie
 ```bash
 ./mvnw test
+./mvnw -q compile && java -cp target/classes pl.fullstackdeveloper.Application
 ```
