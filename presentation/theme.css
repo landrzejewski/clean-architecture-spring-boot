@@ -11,14 +11,20 @@
   --code: #f1efe8;
 }
 
+/*
+ Treść zawsze od góry slajdu. Domyślny motyw Marp centruje ją w pionie (place-content: safe center),
+ a przeglądarki bez obsługi "safe" (np. Safari) przy nadmiarze treści ucinają wtedy górę, czyli tytuł.
+ */
 section {
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-  font-size: 25px;
-  line-height: 1.45;
-  padding: 48px 64px 56px;
+  font-size: 23px;
+  line-height: 1.4;
+  padding: 56px 60px 52px;
   background: var(--paper);
   color: var(--ink);
-  justify-content: flex-start;
+  place-content: start;
+  align-content: start;
+  justify-content: start;
 }
 
 h1 {
@@ -136,6 +142,8 @@ section::after {
 section.lead {
   background: var(--accent);
   color: #fff;
+  place-content: center;
+  align-content: center;
   justify-content: center;
 }
 

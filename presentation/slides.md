@@ -37,14 +37,9 @@ Każdy moduł kończy się ćwiczeniem na przykładzie **bloga**.
 # Jak pracujemy z repozytorium
 
 - Jedna domena przez całe szkolenie: **karty i płatności**, potem **zamówienia** i **wysyłki**.
-- Każdy branch to **jeden koncept** zbudowany na poprzednim.
-  ```bash
-  git checkout 06-rest-adapter
-  git diff 05-spring-as-detail..06-rest-adapter --stat
-  ```
-- Na każdym branchu `README.md`: cel, problem z poprzedniego kroku, co się zmieniło, kiedy **nie** stosować, pytania.
-- Decyzje w `docs/adr`, model C4 w `docs/c4/workspace.dsl`.
-- Każda reguła ma test, który jej pilnuje: `./mvnw test`.
+- Każdy branch to **jeden koncept** zbudowany na poprzednim: `git diff 05-spring-as-detail..06-rest-adapter`
+- Na każdym branchu `README.md`: cel, problem, zmiany, kiedy **nie** stosować, pytania.
+- Decyzje w `docs/adr`, model C4 w `docs/c4`, a każda reguła ma test (`./mvnw test`).
 
 ```
 00 → 01 → … → 15 ─┬─► 16 (mikroserwis)
