@@ -1,5 +1,5 @@
 /*
- Model C4 systemu - Structurizr DSL (stan: 15-spring-modulith; diagramy komponentów generuje też Documenter -> docs/modulith).
+ Model C4 systemu - Structurizr DSL (stan: 16-extract-microservice).
  Podgląd: docker run -it --rm -p 8080:8080 -v $(pwd)/docs/c4:/usr/local/structurizr structurizr/lite
  */
 workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
@@ -10,21 +10,23 @@ workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
         nbp = softwareSystem "NBP API" "Kursy walut (tabela A)" "External"
 
         shop = softwareSystem "Shop" "Zamówienia i płatności kartą" {
-            app = container "Shop Application" "Monolit Spring Boot" "Java 25, Spring Boot 4" {
-                orders = component "Orders" "Składanie zamówień, port Payments + ACL" "Modulith module: orders"
-                paymentsApi = component "Payments API" "PaymentsApi, PaymentRequested, PaymentProcessed" "Modulith named interface: payments::api"
-                payments = component "Payments" "Karty, transakcje, przeliczanie walut" "Modulith module: payments"
-            }
-            db = container "Database" "Karty, transakcje, zamówienia, event_publication (outbox)" "PostgreSQL / H2" "Database"
+            paymentsService = container "payments-service" "Karty, transakcje, płatności" "Spring Boot 4, :8081"
+            paymentsDb = container "Payments DB" "Karty, transakcje, event_publication" "PostgreSQL / H2" "Database"
+            ordersService = container "orders-service" "Zamówienia" "Spring Boot 4, :8082"
+            ordersDb = container "Orders DB" "Zamówienia, event_publication" "PostgreSQL / H2" "Database"
+            kafka = container "Kafka" "payments.payment-requested, payments.payment-processed" "Apache Kafka" "Queue"
         }
 
-        customer -> orders "Składa zamówienie" "REST"
-        operator -> payments "Zarządza kartami" "REST"
-        orders -> paymentsApi "PaymentRequested (async) / PaymentsApi.pay (sync)"
-        payments -> paymentsApi "Implementuje PaymentsApi, publikuje PaymentProcessed"
-        payments -> db "Czyta i zapisuje" "JPA / JDBC"
-        orders -> db "Zamówienia + outbox" "JPA"
-        payments -> nbp "Pobiera kursy" "HTTPS/JSON"
+        customer -> ordersService "Składa zamówienie" "REST"
+        operator -> paymentsService "Zarządza kartami" "REST"
+        ordersService -> kafka "PaymentRequested (outbox)" "Kafka"
+        kafka -> paymentsService "PaymentRequested" "Kafka"
+        paymentsService -> kafka "PaymentProcessed (outbox)" "Kafka"
+        kafka -> ordersService "PaymentProcessed" "Kafka"
+        ordersService -> paymentsService "POST /api/payments (tryb sync)" "HTTP/JSON"
+        paymentsService -> paymentsDb "JPA"
+        ordersService -> ordersDb "JPA"
+        paymentsService -> nbp "Pobiera kursy" "HTTPS/JSON"
     }
 
     views {
@@ -36,16 +38,15 @@ workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
             include *
             autolayout lr
         }
-        component app "Components" {
-            include *
-            autolayout lr
-        }
         styles {
             element "External" {
                 background #999999
             }
             element "Database" {
                 shape cylinder
+            }
+            element "Queue" {
+                shape pipe
             }
         }
     }

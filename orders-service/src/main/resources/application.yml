@@ -1,0 +1,30 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: orders-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      auto-offset-reset: earliest
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  datasource:
+    url: jdbc:h2:mem:orders
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+  mvc:
+    problemdetails:
+      enabled: true
+  modulith:
+    events:
+      republish-outstanding-events-on-restart: true
+orders:
+  payments:
+    mode: async              # async (Kafka) | sync (HTTP)
+    url: http://localhost:8081

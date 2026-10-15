@@ -1,5 +1,5 @@
 ### Nowa karta
-POST http://localhost:8080/api/cards
+POST http://localhost:8081/api/cards
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 %}
 
 ### Wpłata
-POST http://localhost:8080/api/cards/{{number}}/transactions
+POST http://localhost:8081/api/cards/{{number}}/transactions
 Content-Type: application/json
 
 {
@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 ### Płatność
-POST http://localhost:8080/api/cards/{{number}}/transactions
+POST http://localhost:8081/api/cards/{{number}}/transactions
 Content-Type: application/json
 
 {
@@ -31,7 +31,7 @@ Content-Type: application/json
 }
 
 ### Brak środków -> 422 (Problem Details)
-POST http://localhost:8080/api/cards/{{number}}/transactions
+POST http://localhost:8081/api/cards/{{number}}/transactions
 Content-Type: application/json
 Accept-Language: pl
 
@@ -42,7 +42,7 @@ Accept-Language: pl
 }
 
 ### Błąd walidacji -> 400
-POST http://localhost:8080/api/cards/{{number}}/transactions
+POST http://localhost:8081/api/cards/{{number}}/transactions
 Content-Type: application/json
 
 {
@@ -52,13 +52,13 @@ Content-Type: application/json
 }
 
 ### Karta
-GET http://localhost:8080/api/cards/{{number}}
+GET http://localhost:8081/api/cards/{{number}}
 
 ### Lista kart
-GET http://localhost:8080/api/cards?pageIndex=0&pageSize=10
+GET http://localhost:8081/api/cards?pageIndex=0&pageSize=10
 
 ### Płatność w obcej walucie (przeliczenie + 2% prowizji)
-POST http://localhost:8080/api/cards/{{number}}/transactions
+POST http://localhost:8081/api/cards/{{number}}/transactions
 Content-Type: application/json
 
 {
@@ -69,7 +69,7 @@ Content-Type: application/json
 
 ### Zamówienie opłacone kartą (202 Accepted, AWAITING_PAYMENT)
 # @name placeOrder
-POST http://localhost:8080/api/orders
+POST http://localhost:8082/api/orders
 Content-Type: application/json
 
 {
@@ -80,7 +80,17 @@ Content-Type: application/json
 }
 
 ### Zamówienia opłacone kartą (endpoint przeniesiony do orders)
-GET http://localhost:8080/api/orders?cardNumber={{number}}
+GET http://localhost:8082/api/orders?cardNumber={{number}}
 
 ### Status zamówienia (po chwili PAID / REJECTED)
-GET http://localhost:8080/api/orders/{{placeOrder.response.body.id}}
+GET http://localhost:8082/api/orders/{{placeOrder.response.body.id}}
+
+### Płatność przez HTTP (kontrakt payments-api, używany przez orders-service w trybie sync)
+POST http://localhost:8081/api/payments
+Content-Type: application/json
+
+{
+  "cardNumber": "{{number}}",
+  "amount": 15,
+  "currencyCode": "PLN"
+}
