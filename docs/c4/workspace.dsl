@@ -1,5 +1,5 @@
 /*
- Model C4 systemu - Structurizr DSL (stan: 14-module-communication).
+ Model C4 systemu - Structurizr DSL (stan: 15-spring-modulith; diagramy komponentów generuje też Documenter -> docs/modulith).
  Podgląd: docker run -it --rm -p 8080:8080 -v $(pwd)/docs/c4:/usr/local/structurizr structurizr/lite
  */
 workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
@@ -11,11 +11,11 @@ workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
 
         shop = softwareSystem "Shop" "Zamówienia i płatności kartą" {
             app = container "Shop Application" "Monolit Spring Boot" "Java 25, Spring Boot 4" {
-                orders = component "Orders" "Składanie zamówień, port Payments + ACL" "module: orders"
-                paymentsApi = component "Payments API" "PaymentsApi, PaymentRequested, PaymentProcessed" "module: payments-api"
-                payments = component "Payments" "Karty, transakcje, przeliczanie walut" "module: payments"
+                orders = component "Orders" "Składanie zamówień, port Payments + ACL" "Modulith module: orders"
+                paymentsApi = component "Payments API" "PaymentsApi, PaymentRequested, PaymentProcessed" "Modulith named interface: payments::api"
+                payments = component "Payments" "Karty, transakcje, przeliczanie walut" "Modulith module: payments"
             }
-            db = container "Database" "Karty i transakcje" "PostgreSQL / H2" "Database"
+            db = container "Database" "Karty, transakcje, zamówienia, event_publication (outbox)" "PostgreSQL / H2" "Database"
         }
 
         customer -> orders "Składa zamówienie" "REST"
@@ -23,6 +23,7 @@ workspace "Shop" "Przykład ze szkolenia Clean Architecture" {
         orders -> paymentsApi "PaymentRequested (async) / PaymentsApi.pay (sync)"
         payments -> paymentsApi "Implementuje PaymentsApi, publikuje PaymentProcessed"
         payments -> db "Czyta i zapisuje" "JPA / JDBC"
+        orders -> db "Zamówienia + outbox" "JPA"
         payments -> nbp "Pobiera kursy" "HTTPS/JSON"
     }
 

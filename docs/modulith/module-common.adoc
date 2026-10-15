@@ -1,0 +1,9 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`pl.fullstackdeveloper.common`
+|Spring components
+|* `p.f.c.aop.AtomicAspect`
+* `p.f.c.aop.RetryAspect`
+* `p.f.c.aop.TimerAspect`
+|===

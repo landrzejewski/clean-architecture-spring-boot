@@ -1,0 +1,7 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`pl.fullstackdeveloper.orders`
+|Bean references
+|* `p.f.p.api.PaymentsApi` (in Payments)
+|===

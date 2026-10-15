@@ -1,0 +1,7 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`pl.fullstackdeveloper.payments`
+|Spring components
+|* `p.f.p.api.PaymentsApi` (via `p.f.p.adapters.api.PaymentsApiAdapter`)
+|===
