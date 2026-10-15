@@ -6,7 +6,7 @@ public final class Order {
     private final String description;
     private final CardReference cardReference;
     private final Price total;
-    private OrderStatus status = OrderStatus.NEW;
+    private OrderStatus status = OrderStatus.AWAITING_PAYMENT;
     private String paymentId;
     private String rejectionReason;
 
@@ -18,13 +18,13 @@ public final class Order {
     }
 
     public void markPaid(final String paymentId) {
-        requireStatus(OrderStatus.NEW);
+        requireStatus(OrderStatus.AWAITING_PAYMENT);
         this.paymentId = paymentId;
         this.status = OrderStatus.PAID;
     }
 
     public void reject(final String reason) {
-        requireStatus(OrderStatus.NEW);
+        requireStatus(OrderStatus.AWAITING_PAYMENT);
         this.rejectionReason = reason;
         this.status = OrderStatus.REJECTED;
     }

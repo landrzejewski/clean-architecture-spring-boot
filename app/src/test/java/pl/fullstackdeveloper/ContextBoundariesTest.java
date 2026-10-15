@@ -21,12 +21,13 @@ class ContextBoundariesTest {
             .should().beFreeOfCycles();
 
     @ArchTest
-    static final ArchRule orders_use_only_payments_api = noClasses().that().resideInAPackage("..orders..")
-            .should().dependOnClassesThat().resideInAnyPackage("..payments.domain..", "..payments.application..", "..payments.adapters..")
+    static final ArchRule orders_use_only_payments_api = noClasses().that().resideInAPackage("pl.fullstackdeveloper.orders..")
+            .should().dependOnClassesThat().resideInAnyPackage("pl.fullstackdeveloper.payments.domain..", "pl.fullstackdeveloper.payments.application..",
+                    "pl.fullstackdeveloper.payments.adapters..")
             .because("publicznym kontraktem płatności jest wyłącznie pakiet payments.api");
 
     @ArchTest
-    static final ArchRule payments_do_not_know_orders = noClasses().that().resideInAPackage("..payments..")
-            .should().dependOnClassesThat().resideInAPackage("..orders..");
+    static final ArchRule payments_do_not_know_orders = noClasses().that().resideInAPackage("pl.fullstackdeveloper.payments..")
+            .should().dependOnClassesThat().resideInAPackage("pl.fullstackdeveloper.orders..");
 
 }

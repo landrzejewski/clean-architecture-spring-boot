@@ -3,14 +3,18 @@ package pl.fullstackdeveloper.orders;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pl.fullstackdeveloper.orders.application.*;
-import pl.fullstackdeveloper.payments.api.PaymentsApi;
 
 @Configuration
 public class OrdersConfiguration {
 
     @Bean
-    public PlaceOrderUseCase placeOrderUseCase(final OrderRepository orderRepository, final PaymentsApi paymentsApi) {
-        return new PlaceOrderService(orderRepository, paymentsApi);
+    public PlaceOrderUseCase placeOrderUseCase(final OrderRepository orderRepository, final Payments payments) {
+        return new PlaceOrderService(orderRepository, payments);
+    }
+
+    @Bean
+    public CompletePaymentUseCase completePaymentUseCase(final OrderRepository orderRepository) {
+        return new CompletePaymentService(orderRepository);
     }
 
     @Bean

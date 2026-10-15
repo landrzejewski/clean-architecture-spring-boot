@@ -18,5 +18,6 @@ module pl.fullstackdeveloper.common {
     requires org.slf4j;
 
     opens pl.fullstackdeveloper.common.aop;
+    opens pl.fullstackdeveloper.common.async;
 
 }

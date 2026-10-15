@@ -67,7 +67,8 @@ Content-Type: application/json
   "currencyCode": "EUR"
 }
 
-### Zamówienie opłacone kartą
+### Zamówienie opłacone kartą (202 Accepted, AWAITING_PAYMENT)
+# @name placeOrder
 POST http://localhost:8080/api/orders
 Content-Type: application/json
 
@@ -80,3 +81,6 @@ Content-Type: application/json
 
 ### Zamówienia opłacone kartą (endpoint przeniesiony do orders)
 GET http://localhost:8080/api/orders?cardNumber={{number}}
+
+### Status zamówienia (po chwili PAID / REJECTED)
+GET http://localhost:8080/api/orders/{{placeOrder.response.body.id}}

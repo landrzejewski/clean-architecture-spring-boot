@@ -2,7 +2,7 @@ package pl.fullstackdeveloper.orders.domain;
 
 public enum OrderStatus {
 
-    NEW,
+    AWAITING_PAYMENT,
     PAID,
     REJECTED
 

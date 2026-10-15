@@ -18,6 +18,9 @@ payments:
   import:
     enabled: false
     directory: import
+orders:
+  payments:
+    mode: async              # async | sync
 ---
 spring:
   config:

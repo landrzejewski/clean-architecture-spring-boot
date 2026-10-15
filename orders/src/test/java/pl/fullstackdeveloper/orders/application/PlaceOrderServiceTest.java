@@ -1,21 +1,17 @@
 package pl.fullstackdeveloper.orders.application;
 
 import org.junit.jupiter.api.Test;
-import pl.fullstackdeveloper.orders.domain.CardReference;
-import pl.fullstackdeveloper.orders.domain.Order;
-import pl.fullstackdeveloper.orders.domain.OrderId;
-import pl.fullstackdeveloper.orders.domain.OrderStatus;
-import pl.fullstackdeveloper.orders.domain.Price;
-import pl.fullstackdeveloper.payments.api.PaymentResult;
+import pl.fullstackdeveloper.orders.domain.*;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Moduł zamówień testujemy z fake'iem PaymentsApi - implementacji płatności nie ma nawet na classpath
+// Testy use case'ów zamówień z fake'ami portów - bez Springa i bez modułu płatności
 class PlaceOrderServiceTest {
 
     private final Map<OrderId, Order> orders = new HashMap<>();
+    private final List<OrderId> paymentRequests = new ArrayList<>();
     private final OrderRepository orderRepository = new OrderRepository() {
 
         @Override
@@ -35,23 +31,37 @@ class PlaceOrderServiceTest {
         }
 
     };
+    private final PlaceOrderUseCase placeOrder = new PlaceOrderService(orderRepository, (orderId, card, price) -> paymentRequests.add(orderId));
+    private final CompletePaymentUseCase completePayment = new CompletePaymentService(orderRepository);
+
+    @Test
+    void placed_order_awaits_payment() {
+        var orderId = placeOrder();
+
+        assertThat(orders.get(orderId).getStatus()).isEqualTo(OrderStatus.AWAITING_PAYMENT);
+        assertThat(paymentRequests).containsExactly(orderId);
+    }
 
     @Test
     void order_is_paid_when_payment_completes() {
-        var service = new PlaceOrderService(orderRepository, request -> new PaymentResult.Completed("payment-1"));
+        var orderId = placeOrder();
 
-        var orderId = service.handle(new PlaceOrderCommand("Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN")));
+        completePayment.handle(orderId, new PaymentOutcome.Paid("payment-1"));
 
         assertThat(orders.get(orderId).getStatus()).isEqualTo(OrderStatus.PAID);
     }
 
     @Test
-    void order_is_rejected_when_payment_is_rejected() {
-        var service = new PlaceOrderService(orderRepository, request -> new PaymentResult.Rejected("Insufficient balance"));
+    void order_is_rejected_when_payment_is_declined() {
+        var orderId = placeOrder();
 
-        var orderId = service.handle(new PlaceOrderCommand("Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN")));
+        completePayment.handle(orderId, new PaymentOutcome.Declined("Insufficient balance"));
 
         assertThat(orders.get(orderId).getRejectionReason()).isEqualTo("Insufficient balance");
+    }
+
+    private OrderId placeOrder() {
+        return placeOrder.handle(new PlaceOrderCommand("Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN")));
     }
 
 }

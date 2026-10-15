@@ -39,7 +39,8 @@ class OrdersRestController {
         var total = new Price(request.amount(), Currency.getInstance(request.currencyCode()));
         var orderId = placeOrderUseCase.handle(new PlaceOrderCommand(request.description(), new CardReference(request.cardNumber()), total));
         var view = getOrderUseCase.handle(orderId);
-        return ResponseEntity.created(fromRequest(view.id())).body(view);
+        // 202 Accepted: zamówienie przyjęte, wynik płatności może przyjść później (status AWAITING_PAYMENT)
+        return ResponseEntity.accepted().location(fromRequest(view.id())).body(view);
     }
 
     @GetMapping("{id}")

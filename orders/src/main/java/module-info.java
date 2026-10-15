@@ -8,6 +8,7 @@ open module pl.fullstackdeveloper.orders {
     requires pl.fullstackdeveloper.payments.api;
 
     requires spring.beans;
+    requires spring.boot.autoconfigure;
     requires spring.context;
     requires spring.web;
     requires jakarta.validation;
