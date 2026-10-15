@@ -22,11 +22,9 @@ payments:
   import:
     enabled: false
     directory: import
-orders:
-  saga:
-    step-timeout: 30s        # po tym czasie krok bez odpowiedzi jest ponawiany
-    max-attempts: 3          # po tylu próbach krok uznajemy za nieudany (kompensacja)
-    check-interval: 5s
+events:
+  retry:
+    interval: 2s             # ponawianie nieudanych publikacji (listener rzucił wyjątek)
 ---
 spring:
   config:

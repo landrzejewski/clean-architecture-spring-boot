@@ -26,14 +26,12 @@ class OrdersRestController {
     private final PlaceOrderUseCase placeOrderUseCase;
     private final GetOrderUseCase getOrderUseCase;
     private final GetCardOrdersUseCase getCardOrdersUseCase;
-    private final GetOrderSagaUseCase getOrderSagaUseCase;
 
     OrdersRestController(final PlaceOrderUseCase placeOrderUseCase, final GetOrderUseCase getOrderUseCase,
-                         final GetCardOrdersUseCase getCardOrdersUseCase, final GetOrderSagaUseCase getOrderSagaUseCase) {
+                         final GetCardOrdersUseCase getCardOrdersUseCase) {
         this.placeOrderUseCase = placeOrderUseCase;
         this.getOrderUseCase = getOrderUseCase;
         this.getCardOrdersUseCase = getCardOrdersUseCase;
-        this.getOrderSagaUseCase = getOrderSagaUseCase;
     }
 
     @PostMapping
@@ -48,12 +46,6 @@ class OrdersRestController {
     @GetMapping("{id}")
     OrderView getOrder(@PathVariable final UUID id) {
         return getOrderUseCase.handle(new OrderId(id));
-    }
-
-    // stan procesu (sagi) dla zamówienia - przydatne przy diagnozie i demo kompensacji
-    @GetMapping("{id}/saga")
-    SagaView getOrderSaga(@PathVariable final UUID id) {
-        return getOrderSagaUseCase.handle(new OrderId(id));
     }
 
     // przeniesione z payments (GetCardOrdersRestController) - to zamówienia wiedzą, czym zostały opłacone

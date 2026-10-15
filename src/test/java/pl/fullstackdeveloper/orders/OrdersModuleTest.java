@@ -4,24 +4,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.modulith.test.Scenario;
+import pl.fullstackdeveloper.events.OrderPlaced;
+import pl.fullstackdeveloper.events.PaymentCompleted;
+import pl.fullstackdeveloper.events.PaymentRefunded;
+import pl.fullstackdeveloper.events.ShipmentScheduled;
 import pl.fullstackdeveloper.orders.application.GetOrderUseCase;
 import pl.fullstackdeveloper.orders.application.PlaceOrderCommand;
 import pl.fullstackdeveloper.orders.application.PlaceOrderUseCase;
 import pl.fullstackdeveloper.orders.domain.CardReference;
 import pl.fullstackdeveloper.orders.domain.OrderId;
 import pl.fullstackdeveloper.orders.domain.Price;
-import pl.fullstackdeveloper.payments.api.PaymentProcessed;
-import pl.fullstackdeveloper.payments.api.PaymentRequested;
-import pl.fullstackdeveloper.payments.api.PaymentResult;
-import pl.fullstackdeveloper.shipping.api.ShipmentRequested;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /*
- Test modułu w izolacji: Spring uruchamia tylko beany modułu orders (+ common).
- Płatności i wysyłki nie istnieją - interakcję z nimi opisujemy zdarzeniami (Scenario API).
+ Moduł zamówień w izolacji: płatności i wysyłki "udajemy", publikując ich zdarzenia (Scenario API).
  */
-@ApplicationModuleTest(extraIncludes = "common")
+@ApplicationModuleTest(extraIncludes = {"common", "events"})
 class OrdersModuleTest {
 
     @Autowired
@@ -30,25 +29,36 @@ class OrdersModuleTest {
     private GetOrderUseCase getOrder;
 
     @Test
-    void placing_order_requests_payment(final Scenario scenario) {
-        scenario.stimulate(() -> placeOrder.handle(new PlaceOrderCommand("Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN"), "Warszawa, Polna 1")))
-                .andWaitForEventOfType(PaymentRequested.class)
-                .toArriveAndVerify((event, orderId) -> {
-                    assertThat(event.reference()).isEqualTo(orderId.value().toString());
-                    assertThat(event.amount()).isEqualByComparingTo("40");
-                });
+    void placing_order_announces_order_placed(final Scenario scenario) {
+        scenario.stimulate(this::placeOrder)
+                .andWaitForEventOfType(OrderPlaced.class)
+                .toArriveAndVerify((event, orderId) -> assertThat(event.orderId()).isEqualTo(orderId.value().toString()));
     }
 
     @Test
-    void completed_payment_marks_order_as_paid_and_requests_shipment(final Scenario scenario) {
-        var orderId = placeOrder.handle(new PlaceOrderCommand("Book", new CardReference("1111222233334444"), Price.of("10", "PLN"), "Warszawa, Polna 1"));
+    void order_follows_payment_and_shipment_facts(final Scenario scenario) {
+        var orderId = placeOrder();
+        var id = orderId.value().toString();
 
-        scenario.publish(new PaymentProcessed(orderId.value().toString(), new PaymentResult.Completed("payment-1")))
-                .andWaitForEventOfType(ShipmentRequested.class)
-                .toArriveAndVerify(event -> {
-                    assertThat(event.reference()).isEqualTo(orderId.value().toString());
-                    assertThat(status(orderId)).isEqualTo("PAID");
-                });
+        scenario.publish(new PaymentCompleted(id, "payment-1"))
+                .andWaitForStateChange(() -> status(orderId), "PAID"::equals);
+        scenario.publish(new ShipmentScheduled(id, "shipment-1"))
+                .andWaitForStateChange(() -> status(orderId), "CONFIRMED"::equals);
+    }
+
+    @Test
+    void refund_cancels_paid_order(final Scenario scenario) {
+        var orderId = placeOrder();
+        var id = orderId.value().toString();
+
+        scenario.publish(new PaymentCompleted(id, "payment-1"))
+                .andWaitForStateChange(() -> status(orderId), "PAID"::equals);
+        scenario.publish(new PaymentRefunded(id, "Address is outside of the delivery area"))
+                .andWaitForStateChange(() -> status(orderId), "CANCELLED"::equals);
+    }
+
+    private OrderId placeOrder() {
+        return placeOrder.handle(new PlaceOrderCommand("Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN"), "Warszawa"));
     }
 
     private String status(final OrderId orderId) {

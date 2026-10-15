@@ -1,4 +1,4 @@
-package pl.fullstackdeveloper.payments.adapters.api;
+package pl.fullstackdeveloper.payments.adapters.events;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

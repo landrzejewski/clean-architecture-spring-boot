@@ -14,8 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /*
- Saga od początku do końca przez REST: płatność -> wysyłka -> potwierdzenie,
- a przy błędzie wysyłki kompensacja (zwrot środków) i anulowanie zamówienia.
+ Ten sam test co w 20 (orkiestracja) - zewnętrzne zachowanie systemu się nie zmieniło,
+ choć nie ma już orkiestratora: proces wynika z reakcji modułów na zdarzenia.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,10 +39,6 @@ class SagaEndToEndTest {
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> shop.getOrder(orderId)
                 .andExpect(jsonPath("$.status").value("CONFIRMED"))
                 .andExpect(jsonPath("$.shipmentId").isNotEmpty()));
-        shop.getSaga(orderId)
-                .andExpect(jsonPath("$.status").value("COMPLETED"))
-                .andExpect(jsonPath("$.completedSteps[0]").value("CHARGE_PAYMENT"))
-                .andExpect(jsonPath("$.completedSteps[1]").value("SCHEDULE_SHIPMENT"));
         shop.getCard(cardNumber).andExpect(jsonPath("$.balance").value(900.0));
     }
 
@@ -55,7 +51,6 @@ class SagaEndToEndTest {
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> shop.getOrder(orderId)
                 .andExpect(jsonPath("$.status").value("CANCELLED"))
                 .andExpect(jsonPath("$.rejectionReason").value("Address is outside of the delivery area")));
-        shop.getSaga(orderId).andExpect(jsonPath("$.status").value("COMPENSATED"));
         // kompensacja semantyczna: karta została obciążona, a potem uznana tą samą kwotą
         shop.getCard(cardNumber)
                 .andExpect(jsonPath("$.balance").value(1000.0))
@@ -70,7 +65,7 @@ class SagaEndToEndTest {
 
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> shop.getOrder(orderId)
                 .andExpect(jsonPath("$.status").value("REJECTED")));
-        shop.getSaga(orderId).andExpect(jsonPath("$.completedSteps").isEmpty());
+        shop.getCard(cardNumber).andExpect(jsonPath("$.transactionsCount").value(1));
     }
 
 }

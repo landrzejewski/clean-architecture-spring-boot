@@ -1,7 +1,7 @@
 /**
- * Moduł aplikacyjny "orders". Orkiestruje sagę składania zamówienia; zna tylko API płatności i wysyłek.
+ * Moduł aplikacyjny "orders". W choreografii zna wyłącznie wspólny język zdarzeń (moduł events).
  */
-@ApplicationModule(displayName = "Orders", allowedDependencies = {"payments::api", "shipping::api", "common"})
+@ApplicationModule(displayName = "Orders", allowedDependencies = {"events", "common"})
 package pl.fullstackdeveloper.orders;
 
 import org.springframework.modulith.ApplicationModule;

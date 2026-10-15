@@ -40,10 +40,6 @@ final class ShopApi {
         return mockMvc.perform(get("/api/cards/" + cardNumber));
     }
 
-    ResultActions getSaga(final String orderId) throws Exception {
-        return mockMvc.perform(get("/api/orders/" + orderId + "/saga"));
-    }
-
     String orderId(final ResultActions placeOrderResult) throws Exception {
         return placeOrderResult.andReturn().getResponse().getContentAsString().replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
     }

@@ -1,4 +1,4 @@
-package pl.fullstackdeveloper.payments.adapters.api;
+package pl.fullstackdeveloper.payments.adapters.events;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;

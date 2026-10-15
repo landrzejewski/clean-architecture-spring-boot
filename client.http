@@ -99,5 +99,5 @@ Content-Type: application/json
   "address": "Antarctica, McMurdo Station"
 }
 
-### Stan sagi
-GET http://localhost:8080/api/orders/{{undeliverable.response.body.id}}/saga
+### Status zamówienia (po chwili CANCELLED, karta z transakcją zwrotu)
+GET http://localhost:8080/api/orders/{{undeliverable.response.body.id}}

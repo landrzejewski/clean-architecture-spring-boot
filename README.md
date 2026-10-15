@@ -1,65 +1,83 @@
-# 20 – Saga: orkiestracja
+# 21 – Saga: choreografia
 
-> Moduł 4: Wzorce zaawansowane · bazuje na: `15-spring-modulith` · następny: `21-saga-choreography`
+> Moduł 4: Wzorce zaawansowane · poprzedni: `20-saga-orchestration` · koniec szkolenia
 
 ## Cel
-Zapewnić spójność procesu biznesowego, który przechodzi przez kilka modułów z osobnymi transakcjami,
-**bez transakcji rozproszonej**. Każdy krok ma krok kompensujący, a jeden orkiestrator prowadzi proces i pamięta jego stan.
-
-## Problem z poprzedniego kroku
-W `15` zamówienie kończyło się na płatności. Dochodzi wysyłka. Co zrobić, gdy karta została obciążona,
-a wysyłka jest niemożliwa? Rollbacku już nie ma, bo transakcja płatności dawno się zatwierdziła.
+Zrealizować **ten sam proces** co w `20` (płatność → wysyłka → potwierdzenie, a przy błędzie wysyłki zwrot środków)
+**bez orkiestratora**. Moduły reagują na fakty publikowane przez inne moduły. Porównać oba warianty.
 
 ## Przebieg
 ```
-                        ┌──────────── OrderSagaOrchestrator (orders) ─────────────┐
-POST /api/orders ──► start: CHARGE_PAYMENT ──► PaymentRequested ──► payments
-                                        ◄── PaymentProcessed(Completed)
-                     SCHEDULE_SHIPMENT ──► ShipmentRequested ──► shipping
-                                        ◄── ShipmentProcessed(scheduled)    ──► CONFIRMED / COMPLETED
-                                        ◄── ShipmentProcessed(rejected)
-                     kompensacja (odwrotna kolejność): REFUND_PAYMENT ──► RefundRequested ──► payments
-                                        ◄── RefundProcessed                 ──► CANCELLED / COMPENSATED
+orders    ── OrderPlaced ─────────────┬──────────────► payments: obciąż kartę ── PaymentCompleted / PaymentFailed
+                                      └──────────────► shipping: zapamiętaj adres
+payments  ── PaymentCompleted ───────────────────────► shipping: zaplanuj ──── ShipmentScheduled / ShipmentFailed
+          └─ PaymentCompleted / PaymentFailed ───────► orders: PAID / REJECTED
+shipping  ── ShipmentScheduled ──────────────────────► orders: CONFIRMED
+          └─ ShipmentFailed ─────────────────────────► payments: zwrot ─────── PaymentRefunded ──► orders: CANCELLED
 ```
-Adres zawierający `Antarctica` lub `Mars` jest poza obszarem dostaw, więc służy do demo kompensacji.
 
 ## Co się zmieniło
 ```bash
-git diff 15-spring-modulith..20-saga-orchestration --stat
+git diff 20-saga-orchestration..21-saga-choreography --stat
 ```
-| Element | Gdzie |
+| Usunięte (orkiestracja) | Dodane (choreografia) |
 |---|---|
-| Moduł `shipping` (domena `Shipment`, `Address`, idempotentny `ScheduleShipmentService`) | `shipping.*` |
-| Stan sagi (maszyna stanów, stos kompensacji, timeouty) | `orders.domain.OrderSaga`, `SagaStep`, `SagaStatus` |
-| Orkiestrator | `orders.application.OrderSagaOrchestrator` |
-| Porty uczestników | `orders.application.Payments` (+ `requestRefund`), `Shipping` |
-| Trwałość sagi | `orders.adapters.persistence.JpaOrderSagaRepository` (`order_sagas`) |
-| Ponawianie kroków | `orders.adapters.scheduling.SagaTimeoutScheduler` + `orders.saga.*` w `application.yml` |
-| Zwrot środków (kompensacja) | `payments.api.RefundRequested/RefundProcessed`, `PaymentsApi.refund` |
-| Idempotentność płatności | `payments.adapters.api.ProcessedMessages` (`processed_messages`) |
-| Podgląd procesu | `GET /api/orders/{id}/saga` |
+| `OrderSagaOrchestrator`, `OrderSaga`, `SagaStep`, `SagaStatus`, `order_sagas`, `SagaTimeoutScheduler`, `GET …/saga` | moduł `events` ze wspólnymi zdarzeniami procesu |
+| polecenia `PaymentRequested`, `RefundRequested`, `ShipmentRequested` | fakty `OrderPlaced`, `PaymentCompleted`, `ShipmentFailed`, … |
+| porty `Payments`, `Shipping` w zamówieniach | port `OrderEvents` + `OrderProgressService` (reakcje zamówień) |
+| | `PaymentsProcessListener` (+ `OrderPayment`), `ShippingProcessListener` (+ `PendingShipment`) |
+| | `EventPublicationRetryScheduler`: automatyczne ponawianie nieudanych publikacji |
 
-Usunięte: `CompletePaymentUseCase` i tryb synchroniczny (`SyncPaymentsAdapter`). Wynik każdego kroku trafia teraz do orkiestratora.
+`SagaEndToEndTest` jest prawie identyczny jak w `20`, bo zewnętrzne zachowanie systemu się nie zmieniło.
+
+## Orkiestracja vs choreografia
+| | Orkiestracja (`20`) | Choreografia (`21`) |
+|---|---|---|
+| Gdzie jest proces | w jednej klasie (`OrderSagaOrchestrator`) | rozproszony po listenerach trzech modułów |
+| Stan procesu | jawny, trwały (`order_sagas`), endpoint `/saga` | niejawny: status zamówienia + lokalne tabele uczestników |
+| Komunikaty | polecenia (zrób X) + odpowiedzi | fakty (stało się X) |
+| Zależności | orkiestrator zna uczestników | wszyscy znają wspólny język zdarzeń (`events`) |
+| Timeouty, zawieszone procesy | w orkiestratorze | trzeba dobudować (monitoring, „process tracker”) |
+| Dodanie kroku | zmiana w orkiestratorze | nowy listener, ale trudno ocenić wpływ na całość |
+| Dobre dla | długich, złożonych procesów z kompensacjami | krótkich procesów, luźno powiązanych zespołów |
 
 ## Na co zwrócić uwagę
-- **Kompensacja to nie rollback**: po anulowaniu karta ma 3 transakcje (wpłata, płatność, zwrot) i saldo jak na początku (`SagaEndToEndTest`).
-- **Odwrotna kolejność**: `OrderSaga` trzyma ukończone kroki na stosie. Dodanie kroku (np. rezerwacja magazynu) to dopisanie go do `SagaStep` z jego kompensacją.
-- **Idempotentność**: `PaymentsModuleTest.duplicated_payment_request_charges_card_only_once` sprawdza, że to samo żądanie dostarczone dwa razy obciąża kartę raz. Orkiestrator ignoruje odpowiedzi, na które nie czeka (`OrderSagaOrchestratorTest.duplicate_results_are_ignored`).
-- **Recovery**: stan sagi jest w bazie, a polecenia w outboxie. Po restarcie `republish-outstanding-events-on-restart` dosyła niedostarczone komunikaty, a `SagaTimeoutScheduler` ponawia kroki bez odpowiedzi.
-- **Timeout**: `OrderSagaOrchestratorTest.step_without_response_is_retried_and_then_compensated` pokazuje próby, a potem kompensację.
-- Stan i polecenie zapisujemy w jednej transakcji. Gdyby było inaczej, mogłoby powstać polecenie bez stanu albo stan bez polecenia.
+- **Moduł `events`**: bez niego `orders → payments → shipping → orders` tworzą cykl, a `ApplicationModularityTest` by to wykrył. Choreografia wymaga wspólnego kontraktu zdarzeń.
+- **Kolejność**: `PaymentCompleted` może dotrzeć do wysyłek przed `OrderPlaced`. Listener rzuca wyjątek, a publikacja jest ponawiana (`EventPublicationRetryScheduler`).
+- **Lokalne kopie danych**: płatności pamiętają kwotę i kartę (`OrderPayment`), bo nikt im nie powie, ile zwrócić.
+- **Nieudana kompensacja** jest tylko logowana. Nie ma miejsca, które „wie”, że proces utknął. To główny koszt choreografii.
 
 ## Kiedy NIE stosować
-Gdy wszystkie kroki są w jednym module i jednej bazie, wystarczy zwykła transakcja.
-Gdy proces ma 2 kroki i rzadko zawodzi, prostsza bywa choreografia (`21`).
+Gdy proces ma wiele kroków i kompensacji, wymaga timeoutów i wglądu w stan („gdzie jest moje zamówienie?”).
+Wtedy wybierz orkiestrację.
 
 ## Pytania do dyskusji
-- Kompensacja w innej walucie i po innym kursie: czy zwrot zawsze jest „równy” płatności? Co z prowizją?
-- Co zrobić z sagą w stanie `FAILED` (kompensacja się nie udała)?
-- Czy klient powinien widzieć stany pośrednie (`PAID`)? Jak je nazwać w UI?
+- Jak odpowiedzieć na pytanie „ile zamówień utknęło w płatności od godziny?” w każdym z wariantów?
+- Czy da się mieszać oba style (np. choreografia między kontekstami, orkiestracja wewnątrz)?
+- Kto jest właścicielem modułu `events`?
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw spring-boot:run      # client.http: zamówienie z adresem "Antarctica" -> kompensacja
+./mvnw spring-boot:run
 ```
+
+---
+
+## Ćwiczenie końcowe: rozproszona saga „provisioning infrastruktury”
+Zaimplementuj sagę (wariant do wyboru, oba dla chętnych) dla tworzenia maszyny wirtualnej. Kroki są symulowane: rekord w bazie + opóźnienie.
+
+```
+utwórz VM → podłącz wolumen → skonfiguruj sieć/VLAN → zarejestruj w service mesh → dodaj do monitoringu
+```
+Kroki 1–2 należą do `compute-service`, a 3–5 do `network-service`. Mogą to być moduły Modulith albo, dla chętnych, dwie aplikacje.
+
+Kryteria akceptacji:
+1. Bez błędów saga kończy się sukcesem i istnieją wszystkie zasoby.
+2. Błąd w kroku 3 kompensuje kroki 2 i 1. Po stronie sieci nie zostaje żaden zasób.
+3. Błąd w kroku 5 kompensuje w kolejności: mesh → sieć → wolumen → VM. Kolejność widać w logach lub znacznikach czasu.
+4. Ponowne dostarczenie kroku lub kompensacji nie tworzy duplikatu i nie usuwa niczego dwa razy (idempotentność).
+5. Po restarcie aplikacji w trakcie sagi proces kończy się stanem terminalnym bez ręcznej akcji (recovery).
+6. Krok bez odpowiedzi jest ponawiany, a po limicie prób kompensowany (timeout).
+
+Wstrzykiwanie błędów: parametr `failAtStep` w żądaniu utworzenia zasobu.
