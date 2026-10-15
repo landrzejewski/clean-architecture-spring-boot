@@ -15,7 +15,7 @@ footer: Łukasz Andrzejewski · szkolenie Clean Architecture
 
 # Czysta architektura w praktyce
 
-Od aplikacji warstwowej do modularnego monolitu, mikroserwisów, CQRS, Event Sourcingu i sag
+Od aplikacji warstwowej do modularnego monolitu i mikroserwisów<br>CQRS · Event Sourcing · Saga
 
 **Łukasz Andrzejewski**
 
