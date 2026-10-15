@@ -1,0 +1,33 @@
+POST http://localhost:8080/api/cards
+Content-Type: application/json
+
+{
+  "currencyCode": "PLN"
+}
+
+> {%
+    client.global.set('number', response.body.number);
+%}
+
+###
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+
+{
+  "type": "IN",
+  "amount": "200",
+  "currencyCode": "PLN"
+}
+
+###
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+
+{
+  "type": "OUT",
+  "amount": "100",
+  "currencyCode": "PLN"
+}
+
+###
+GET http://localhost:8080/api/cards/{{number}}
