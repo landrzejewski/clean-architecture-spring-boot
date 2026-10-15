@@ -1,0 +1,58 @@
+### Nowa karta
+POST http://localhost:8080/api/cards
+Content-Type: application/json
+
+{
+  "currencyCode": "PLN"
+}
+
+> {%
+    client.global.set('number', response.body.number);
+%}
+
+### Wpłata
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+
+{
+  "type": "IN",
+  "amount": 200,
+  "currencyCode": "PLN"
+}
+
+### Płatność
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+
+{
+  "type": "OUT",
+  "amount": 100,
+  "currencyCode": "PLN"
+}
+
+### Brak środków -> 422 (Problem Details)
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+Accept-Language: pl
+
+{
+  "type": "OUT",
+  "amount": 1000,
+  "currencyCode": "PLN"
+}
+
+### Błąd walidacji -> 400
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+
+{
+  "type": "OUT",
+  "amount": -5,
+  "currencyCode": "pln"
+}
+
+### Karta
+GET http://localhost:8080/api/cards/{{number}}
+
+### Lista kart
+GET http://localhost:8080/api/cards?pageIndex=0&pageSize=10

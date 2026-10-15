@@ -1,46 +1,51 @@
-# 05 – Spring jako szczegół
+# 06 – Adapter REST
 
-> Moduł 2: Implementacja · poprzedni: `04-cross-cutting-by-hand` · następny: `06-rest-adapter`
+> Moduł 2: Implementacja · poprzedni: `05-spring-as-detail` · następny: `07-persistence-adapter`
 
 ## Cel
-Dodać Spring Boot **bez zmiany domeny i use case'ów**. Spring przejmuje rolę composition root (IoC/DI)
-oraz ręcznych proxy z `04` (AOP). Rdzeń aplikacji nadal nie wie o jego istnieniu.
+Wystawić use case'y przez HTTP jako **adapter wejściowy**: osobny kontrakt (DTO), walidacja wejścia,
+mapowanie na komendy i tłumaczenie wyjątków na odpowiedzi HTTP (Problem Details, RFC 9457).
 
 ## Problem z poprzedniego kroku
-Ręczne składanie obiektów (`PaymentsFacade`, `PaymentsFactory`) i własne proxy dobrze uczą mechaniki,
-ale w realnej aplikacji to kod, którego nie chcemy utrzymywać.
+Use case'y działały tylko z `DemoRunner`. W `00` kontroler zwracał encje JPA, więc kontrakt REST był
+sklejony ze schematem bazy. Tym razem kontrakt REST ma być niezależny od domeny.
 
 ## Co się zmieniło
 ```bash
-git diff 04-cross-cutting-by-hand..05-spring-as-detail --stat
+git diff 05-spring-as-detail..06-rest-adapter --stat
 ```
-| Było w 04 | Jest w 05 |
+| Element | Klasa |
 |---|---|
-| `PaymentsFacade` + `PaymentsFactory` | `PaymentsConfiguration` (`@Bean` dla use case'ów) + `@Adapter` (component scan) |
-| `Proxies` + `*Interceptor` | `common/aop/*Aspect` (Spring AOP, AspectJ annotations) |
-| `ConsoleTransactionManager` | `PlatformTransactionManager` Springa (na razie JDBC/H2, JPA w `07`) |
-| `Application.main` z wywołaniami | `@SpringBootApplication` + `DemoRunner` (adapter CLI, profil `demo`) |
-
-Bez zmian: `domain`, `application` (poza deklaratywnymi `@Atomic`/`@Timer` z `04`).
+| Kontrolery (jeden na use case) | `adapters/rest/*RestController` |
+| Kontrakt REST | `RestModel.java`: `AddTransactionRequest`, `CardResponse`, `TransactionTypeDto`, … |
+| Mapowanie DTO ↔ komenda / model wyjściowy | `CardRestMapper` |
+| Wyjątki → HTTP | `PaymentsExceptionHandler` (`ProblemDetail`, i18n z `exceptions*.properties`) |
+| Żądania do ręcznego testowania | `client.http` |
 
 ## Na co zwrócić uwagę
-- `ArchitectureTest.domain_and_application_do_not_depend_on_frameworks` pilnuje, że rdzeń nie importuje Springa ani JPA.
-- `AspectOrder`: retry → timer → atomic → metoda. Retry musi obejmować transakcję, żeby każda próba miała nową (`AspectsTest.failed_attempts_are_retried`).
-- `AspectsTest` czyta stan beana przez metody, bo bean jest proxy CGLIB i jego pola są puste. To dobra okazja, żeby pokazać, jak działa proxy klasowe.
-- Testy domeny i use case'ów z `01`/`02` przechodzą bez zmian i bez Springa.
-- ADR: `docs/adr/0003-spring-as-implementation-detail.md`.
+- **Trzy poziomy walidacji**:
+  - Bean Validation w DTO sprawdza format (`[A-Z]{3}`, `@Positive`).
+  - Komenda sprawdza kompletność.
+  - Domena sprawdza reguły biznesowe.
+
+  Każdy poziom ma inną odpowiedzialność.
+- `TransactionTypeDto` (`IN`/`OUT`) to język API, a `TransactionType` (`INFLOW`/`PAYMENT`) to język domeny. Mapper tłumaczy jeden na drugi.
+- Domena nie zna kodów HTTP. Decyzja „brak środków = 422” należy do adaptera.
+- Testy:
+  - `AddTransactionRestControllerTest` (`@WebMvcTest` + `@MockitoBean` portu wejściowego) testuje sam adapter.
+  - `PaymentsRestApiTest` przechodzi przez całą aplikację.
 
 ## Kiedy NIE stosować
-Własne adnotacje zamiast `@Transactional` mają sens, gdy naprawdę chcemy rdzenia niezależnego od frameworka.
-Wiele zespołów świadomie akceptuje `@Transactional` w warstwie aplikacji, bo jest to pragmatyczne i dobrze znane.
+Kontroler per use case daje dużo małych klas. Przy kilku endpointach jeden kontroler per zasób jest równie dobry.
+Osobne DTO dla prostego CRUD-a to często nadmiar.
 
 ## Pytania do dyskusji
-- Co dokładnie zyskujemy, trzymając Springa poza `application`? Ile to kosztuje?
-- Dlaczego adnotacja `@Atomic` na metodzie wywołanej przez `this` nie zadziała?
-- Proxy JDK czy CGLIB: kiedy Spring wybiera które?
+- Czy kontroler może używać typów domenowych (`CardNumber`, `Money`)? Jakie są granice?
+- 400 czy 422 dla błędów biznesowych? Co mówi RFC 9110?
+- Gdzie mapować: w kontrolerze, w mapperze adaptera czy w use case?
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+./mvnw spring-boot:run   # potem client.http
 ```
