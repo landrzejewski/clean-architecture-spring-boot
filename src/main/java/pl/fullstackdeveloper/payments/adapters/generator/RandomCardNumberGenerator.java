@@ -1,4 +1,4 @@
-package pl.fullstackdeveloper.payments.adapters;
+package pl.fullstackdeveloper.payments.adapters.generator;
 
 import org.springframework.beans.factory.annotation.Value;
 import pl.fullstackdeveloper.common.annotations.Adapter;

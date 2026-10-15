@@ -1,4 +1,4 @@
-package pl.fullstackdeveloper.payments.adapters;
+package pl.fullstackdeveloper.payments.adapters.time;
 
 import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.payments.application.DateTimeProvider;
