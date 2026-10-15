@@ -21,8 +21,9 @@ public class PaymentsConfiguration {
     @Bean
     public AddTransactionUseCase addTransactionUseCase(final DateTimeProvider dateTimeProvider,
                                                        final TransactionEventPublisher transactionEventPublisher,
-                                                       final CardRepository cardRepository) {
-        return new AddTransactionService(dateTimeProvider, transactionEventPublisher, cardRepository);
+                                                       final CardRepository cardRepository,
+                                                       final ExchangeRateProvider exchangeRateProvider) {
+        return new AddTransactionService(dateTimeProvider, transactionEventPublisher, cardRepository, exchangeRateProvider);
     }
 
     @Bean

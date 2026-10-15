@@ -4,6 +4,8 @@ import pl.fullstackdeveloper.common.annotations.Atomic;
 import pl.fullstackdeveloper.common.annotations.Retry;
 import pl.fullstackdeveloper.common.annotations.Timer;
 import pl.fullstackdeveloper.payments.domain.Card;
+import pl.fullstackdeveloper.payments.domain.CurrencyExchange;
+import pl.fullstackdeveloper.payments.domain.Money;
 import pl.fullstackdeveloper.payments.domain.Transaction;
 import pl.fullstackdeveloper.payments.domain.TransactionId;
 import pl.fullstackdeveloper.payments.domain.TransactionRegistered;
@@ -14,15 +16,18 @@ import pl.fullstackdeveloper.payments.domain.TransactionRegistered;
  */
 public class AddTransactionService implements AddTransactionUseCase {
 
+    private final CurrencyExchange currencyExchange = new CurrencyExchange();
     private final DateTimeProvider dateTimeProvider;
     private final TransactionEventPublisher eventPublisher;
     private final CardRepository cardRepository;
+    private final ExchangeRateProvider exchangeRateProvider;
 
     public AddTransactionService(final DateTimeProvider dateTimeProvider, final TransactionEventPublisher eventPublisher,
-                                 final CardRepository cardRepository) {
+                                 final CardRepository cardRepository, final ExchangeRateProvider exchangeRateProvider) {
         this.dateTimeProvider = dateTimeProvider;
         this.eventPublisher = eventPublisher;
         this.cardRepository = cardRepository;
+        this.exchangeRateProvider = exchangeRateProvider;
     }
 
     // konflikt współbieżnej modyfikacji karty -> ponów cały use case w nowej transakcji
@@ -32,7 +37,8 @@ public class AddTransactionService implements AddTransactionUseCase {
     @Override
     public TransactionId handle(final AddTransactionCommand command) {
         var card = findCard(command);
-        var transaction = new Transaction(new TransactionId(), dateTimeProvider.getZonedDateTime(), command.value(), command.type());
+        var value = toCardCurrency(command, card);
+        var transaction = new Transaction(new TransactionId(), dateTimeProvider.getZonedDateTime(), value, command.type());
         card.registerTransaction(transaction);
         cardRepository.save(card);
         card.pullEvents().forEach(this::publish);
@@ -42,6 +48,14 @@ public class AddTransactionService implements AddTransactionUseCase {
     private Card findCard(final AddTransactionCommand command) {
         return cardRepository.findByNumber(command.cardNumber())
                 .orElseThrow(CardNotFoundException::new);
+    }
+
+    private Money toCardCurrency(final AddTransactionCommand command, final Card card) {
+        if (command.value().hasCurrency(card.getCurrency())) {
+            return command.value();
+        }
+        var rate = exchangeRateProvider.getRate(command.value().currency(), card.getCurrency());
+        return currencyExchange.toCardCurrency(command.value(), rate, command.type());
     }
 
     private void publish(final TransactionRegistered event) {

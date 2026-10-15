@@ -3,9 +3,11 @@ package pl.fullstackdeveloper.payments.application;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pl.fullstackdeveloper.payments.domain.CardNumber;
+import pl.fullstackdeveloper.payments.domain.ExchangeRate;
 import pl.fullstackdeveloper.payments.domain.InsufficientBalanceException;
 import pl.fullstackdeveloper.payments.domain.Money;
 
+import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -25,8 +27,9 @@ class AddTransactionServiceTest {
     private final CardRepository cardRepository = new InMemoryCardRepository();
     private final DateTimeProvider fixedClock = () -> NOW;
     private final List<TransactionAdded> publishedEvents = new ArrayList<>();
+    private final ExchangeRateProvider exchangeRates = (from, to) -> new ExchangeRate(from, to, new BigDecimal("4"));
     private final AddTransactionUseCase addTransaction =
-            new AddTransactionService(fixedClock, publishedEvents::add, cardRepository);
+            new AddTransactionService(fixedClock, publishedEvents::add, cardRepository, exchangeRates);
 
     @BeforeEach
     void beforeEach() {
@@ -52,6 +55,16 @@ class AddTransactionServiceTest {
         assertThatThrownBy(() -> addTransaction.handle(new AddTransactionCommand(CARD_NUMBER, Money.of("100", "PLN"), PAYMENT)))
                 .isInstanceOf(InsufficientBalanceException.class);
         assertThat(publishedEvents).isEmpty();
+    }
+
+    @Test
+    void foreign_payment_is_converted_to_card_currency_with_fee() {
+        addTransaction.handle(new AddTransactionCommand(CARD_NUMBER, Money.of("1000", "PLN"), INFLOW));
+
+        addTransaction.handle(new AddTransactionCommand(CARD_NUMBER, Money.of("100", "EUR"), PAYMENT));
+
+        // 100 EUR * 4 = 400 PLN + 2% = 408 PLN
+        assertThat(cardRepository.findByNumber(CARD_NUMBER).orElseThrow().getBalance()).isEqualTo(Money.of("592", "PLN"));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package pl.fullstackdeveloper.payments.adapters.persistence;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,6 +21,7 @@ import java.util.Optional;
  MANDATORY - transakcję otwiera use case (@Atomic), adapter nigdy nie robi tego sam.
  */
 @Adapter
+@Profile("!jdbc")
 @Transactional(propagation = Propagation.MANDATORY)
 class JpaCardRepositoryAdapter implements CardRepository {
 

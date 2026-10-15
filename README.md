@@ -1,59 +1,51 @@
-# 07 – Adapter persystencji i mapowanie modeli
+# 08 – Wymienność adapterów
 
-> Moduł 2: Implementacja · poprzedni: `06-rest-adapter` · następny: `08-adapter-swap`
+> Moduł 2: Implementacja · poprzedni: `07-persistence-adapter` · następny: `09-testing-architecture`
 
 ## Cel
-Zastąpić repozytorium in-memory adapterem JPA **bez zmiany domeny i use case'ów**, z osobnym modelem
-persystencji, transakcją na granicy use case'u i obsługą współbieżności (optimistic locking).
+Udowodnić w praktyce obietnicę portów i adapterów. Trzy zmiany:
+- nowa technologia persystencji,
+- nowe zewnętrzne API,
+- nowy kanał wejściowy.
+
+Każda z nich to **nowy adapter**. Domena i use case'y zmieniają się tylko wtedy, gdy zmienia się wymaganie biznesowe.
 
 ## Problem z poprzedniego kroku
-Dane znikały po restarcie. Najprostsze rozwiązanie z `00`, czyli adnotacje JPA na modelu domeny, zniszczyłoby
-enkapsulację agregatu i uzależniło domenę od `jakarta.persistence`.
+Wracamy do ćwiczenia z `00`: prowizja 2% za płatność w obcej walucie, kurs z zewnętrznego źródła.
+Porównaj, ile to kosztowało w `CardService`, a ile kosztuje teraz.
 
 ## Co się zmieniło
 ```bash
-git diff 06-rest-adapter..07-persistence-adapter --stat
+git diff 07-persistence-adapter..08-adapter-swap --stat
 ```
-| Element | Klasa |
-|---|---|
-| Model persystencji | `adapters/persistence/CardEntity`, `TransactionEntity` (package-private) |
-| Spring Data | `SpringDataCardRepository` |
-| Mapper domena ↔ JPA | `JpaCardMapper` |
-| Adapter portu | `JpaCardRepositoryAdapter` (`@Transactional(MANDATORY)`, tłumaczenie wyjątków) |
-| Wyjątek portu | `application/CardModifiedConcurrentlyException` + `@Retry` w `AddTransactionService` |
-| Transakcje do odczytu | `@Atomic(readOnly = true)` na `GetCard*Service` |
-| PostgreSQL | profil `postgres` + `docker-compose.yml` |
-
-Usunięte: `HashMapCardRepository`. Testy use case'ów nadal używają fake'a `InMemoryCardRepository`.
-
-## Strategie mapowania między warstwami
-| Strategia | Opis | Gdzie w repo |
+| Zmiana | Port | Adapter(y) |
 |---|---|---|
-| Brak mapowania | ten sam model w każdej warstwie | `00-layered-anemic` (`CardEntity` jako JSON i tabela) |
-| Dwukierunkowe (two-way) | każda warstwa ma model, mapujemy tam i z powrotem | `JpaCardMapper` (domena ↔ JPA) |
-| Pełne (full) | osobny model wejściowy dla każdej operacji | `AddTransactionRequest` → `AddTransactionCommand` (`06`) |
-| Jednokierunkowe (one-way) | model wyjściowy tylko do odczytu, budowany z domeny | `CardView` → `CardResponse` |
-
-Wybór zależy od operacji: dla odczytów często wystarczy brak mapowania albo projekcja (zobacz `17-cqrs-light`).
+| Druga persystencja | `CardRepository` | `JpaCardRepositoryAdapter` (domyślny, optimistic locking) / `JdbcCardRepositoryAdapter` (profil `jdbc`, `SELECT … FOR UPDATE`) |
+| Kursy walut | `ExchangeRateProvider` (nowy) | `FixedExchangeRateAdapter` (domyślny, offline) / `NbpExchangeRateAdapter` (`payments.exchange-rates.provider=nbp`, API NBP) |
+| Nowy kanał wejściowy | `AddTransactionUseCase` | `CsvTransactionImporter` + `CsvImportScheduler` (`payments.import.enabled=true`) |
+| Reguła biznesowa | – | domena: `ExchangeRate` (VO), `CurrencyExchange` (usługa domenowa, prowizja 2%) |
 
 ## Na co zwrócić uwagę
-- `JpaCardMapper.update()` aktualizuje **zarządzaną** encję i dodaje tylko nowe transakcje, a Hibernate pilnuje `@Version`.
-- `saveAndFlush()` w adapterze sprawia, że konflikt wersji pojawia się w adapterze, więc możemy go przetłumaczyć na wyjątek portu.
-- `OptimisticLockingTest` symuluje dwie równoległe transakcje i oczekuje `CardModifiedConcurrentlyException`.
-- `JpaCardRepositoryAdapterTest` (`@DataJpaTest`) testuje kontrakt portu na prawdziwym JPA.
+- `NbpExchangeRateAdapter` to **Anti-Corruption Layer**. Rekordy `NbpRateTable`/`NbpRate` (model NBP) nie wychodzą poza adapter. Aplikacja dostaje domenowy `ExchangeRate`.
+- `CardRepositoryContractTest` to jeden zestaw testów kontraktu portu uruchamiany dla JPA i JDBC (`Jpa…ContractTest`, `Jdbc…ContractTest`).
+- JDBC wymaga ręcznej pracy: mapowania wierszy, relacji, wykrywania nowych transakcji i blokad. Za ten kod płacimy, rezygnując z ORM.
+- Dwa adaptery mają dwie różne strategie współbieżności, ale ten sam kontrakt portu.
+- Nowe wymaganie biznesowe trafiło do domeny (`CurrencyExchange`) i jest testowane bez sieci (`CurrencyExchangeTest`, `AddTransactionServiceTest`).
+- `NbpExchangeRateAdapterTest` testuje ACL bez sieci (`MockRestServiceServer`).
 
 ## Kiedy NIE stosować
-Osobny model persystencji kosztuje. Gdy domena jest prosta, adnotacje JPA na encjach domenowych
-to rozsądny kompromis („no mapping”). Ważne, żeby była to świadoma decyzja (ADR `0004`).
+Wymienność ma sens tam, gdzie jest realna potrzeba: testy, różne środowiska, migracja technologii, wiele kanałów.
+Abstrakcja „na zapas” nad każdą biblioteką to koszt bez zysku.
 
 ## Pytania do dyskusji
-- Optimistic czy pessimistic locking dla salda karty? Co przy bardzo dużym ruchu na jednej karcie?
-- Czy `CardEntity.balance` (denormalizacja) to dobry pomysł? Kto pilnuje spójności?
-- Kto powinien otwierać transakcję: kontroler, use case czy adapter?
+- Czy `ExchangeRateProvider` powinien być portem aplikacji czy domeny?
+- Co zrobić, gdy NBP nie odpowiada? Retry, cache, fallback do ostatniego kursu? Gdzie ta logika powinna żyć?
+- Czy import CSV powinien wywoływać use case per linia czy osobny use case „import wsadowy”?
 
 ## Uruchomienie
 ```bash
 ./mvnw test
-./mvnw spring-boot:run                                      # H2 w pamięci
-docker compose up -d && ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
+./mvnw spring-boot:run -Dspring-boot.run.arguments=--payments.exchange-rates.provider=nbp
+./mvnw spring-boot:run -Dspring-boot.run.profiles=jdbc
+./mvnw spring-boot:run -Dspring-boot.run.arguments=--payments.import.enabled=true   # pliki *.csv w katalogu import/
 ```

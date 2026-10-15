@@ -56,3 +56,13 @@ GET http://localhost:8080/api/cards/{{number}}
 
 ### Lista kart
 GET http://localhost:8080/api/cards?pageIndex=0&pageSize=10
+
+### Płatność w obcej walucie (przeliczenie + 2% prowizji)
+POST http://localhost:8080/api/cards/{{number}}/transactions
+Content-Type: application/json
+
+{
+  "type": "OUT",
+  "amount": 10,
+  "currencyCode": "EUR"
+}
