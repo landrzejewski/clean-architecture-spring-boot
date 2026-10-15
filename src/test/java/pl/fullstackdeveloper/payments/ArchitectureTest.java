@@ -48,6 +48,7 @@ class ArchitectureTest {
             .adapter("exchange", "..payments.adapters.exchange..")
             .adapter("csv", "..payments.adapters.csv..")
             .adapter("cli", "..payments.adapters.cli..")
+            .adapter("api", "..payments.adapters.api..")
             .adapter("events", "..payments.adapters.events..")
             .adapter("time", "..payments.adapters.time..")
             .adapter("generator", "..payments.adapters.generator..")

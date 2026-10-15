@@ -1,35 +1,40 @@
-# 10 – Drugi kontekst „na skróty”
+# 11 – Hermetyzacja na poziomie języka
 
-> Moduł 3: Modularyzacja · poprzedni: `09-testing-architecture` · następny: `11-language-encapsulation`
+> Moduł 3: Modularyzacja · poprzedni: `10-second-context-naive` · następny: `12-maven-modules`
 
 ## Cel
-Dodać drugi bounded context, `orders` (zamówienia opłacane kartą), w sposób, w jaki zwykle dzieje się to pod presją czasu:
-konteksty sięgają nawzajem do swoich wnętrz. To punkt wyjścia całego modułu o modularyzacji.
+Naprawić problemy z `10` środkami samego języka Java i testów: wąski publiczny kontrakt modułu,
+ukrycie implementacji (package-private), zamknięte hierarchie (`sealed`) i brak cykli.
 
 ## Co się zmieniło
 ```bash
-git diff 09-testing-architecture..10-second-context-naive --stat
+git diff 10-second-context-naive..11-language-encapsulation --stat
 ```
-- `orders.domain`: `Order`, `OrderId`, `OrderStatus`
-- `orders.application`: `PlaceOrderService`, `GetOrderService`, `GetCardOrdersService` i port `OrderRepository`
-- `orders.adapters`: `InMemoryOrderRepository`, `OrdersRestController` (`POST /api/orders`, `GET /api/orders/{id}`)
-- `payments.adapters.rest.GetCardOrdersRestController` (`GET /api/cards/{number}/orders`)
-- `ContextBoundariesTest`: reguły granic kontekstów, **celowo wyłączone**
-- `docs/c4/workspace.dsl`: diagram komponentów z dwoma kontekstami i cyklem
+| Problem z 10 | Rozwiązanie w 11 |
+|---|---|
+| `orders` używa `CardRepository` i `Card` | `payments.api.PaymentsApi` + `PaymentRequest` / `PaymentResult` (typy proste) |
+| Ominięty use case płatności | `PaymentsApiAdapter` (package-private) woła `AddTransactionUseCase` |
+| Wyjątki domenowe płatności w zamówieniach | `sealed interface PaymentResult { Completed, Rejected }` + `switch` z pattern matching |
+| Cykl przez `GetCardOrdersRestController` | endpoint przeniesiony do `orders`: `GET /api/orders?cardNumber=…` |
+| `Order` używa `Money`, `CardNumber` z payments | własne VO zamówień: `Price`, `CardReference` |
+| Reguły wyłączone | `ContextBoundariesTest` włączony: brak cykli, `orders → payments.api` only |
 
-## Problemy do znalezienia
-1. **`orders` zna wnętrze `payments`.** `PlaceOrderService` używa `CardRepository`, `Card` i `Transaction` i sam obciąża kartę.
-2. **Ominięty use case.** Brak przeliczania walut, prowizji, zdarzeń i `@Retry`. `NaiveOrdersIntegrationTest` pokazuje, że płatność w EUR działa, a zamówienie w EUR zostaje odrzucone.
-3. **Cykl między kontekstami.** `payments` (REST) zależy od `orders`, a `orders` od `payments`. Nie da się ich rozdzielić ani zmieniać niezależnie.
-4. **Wspólny model.** `Order` używa `payments.domain.Money` i `CardNumber`, więc każda zmiana w płatnościach może zepsuć zamówienia.
-5. **Brak egzekucji.** Wszystko jest `public`, więc kompilator na wszystko pozwala.
+Dodatkowo `DomainException` jest `sealed` z jawną listą dozwolonych wyjątków.
 
-Usuń `@Disabled` w `ContextBoundariesTest` i uruchom `./mvnw test -Dtest=ContextBoundariesTest`, żeby zobaczyć listę naruszeń.
+## Na co zwrócić uwagę
+- `PlaceOrderService` używa `switch` po `PaymentResult` bez `default`. Kompilator wymusi obsługę nowego przypadku.
+- `PlaceOrderService` nie ma `@Atomic`. Płatność commituje się we własnej transakcji modułu płatności. **Jedna transakcja na moduł** to fundament późniejszej komunikacji przez zdarzenia (`14`, `15`).
+- **Ograniczenie Javy**: package-private działa tylko w obrębie jednego pakietu. `payments.domain` i `payments.application` muszą być `public`, bo korzystają z nich inne pakiety płatności. Kompilator nie zabroni `orders` ich użycia, więc granicę pilnuje tylko test ArchUnit.
+- `OrdersIntegrationTest`: zamówienie w EUR jest teraz opłacane, bo działa logika walut z use case'u.
+
+## Kiedy NIE stosować
+Osobny kontrakt API w monolicie ma sens, gdy moduły rozwijają różne osoby lub zespoły albo planujemy wydzielenie.
+Dla dwóch małych pakietów w jednym zespole może wystarczyć konwencja.
 
 ## Pytania do dyskusji
-- Kto jest właścicielem reguły „karta musi mieć środki”? Czy zamówienia powinny ją znać?
-- Co jest publicznym kontraktem płatności? Czego zamówienia naprawdę potrzebują?
-- Czy `Money` może być współdzielone między kontekstami (shared kernel)?
+- `PaymentResult.Rejected` czy wyjątek? Kiedy odrzucenie jest „normalnym” wynikiem?
+- Czy `CardReference` to dobra nazwa? Jak język zamówień różni się od języka płatności?
+- Kto jest właścicielem kontraktu `payments.api`: dostawca czy konsument?
 
 ## Uruchomienie
 ```bash

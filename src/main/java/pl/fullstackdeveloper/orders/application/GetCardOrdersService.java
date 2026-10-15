@@ -1,6 +1,6 @@
 package pl.fullstackdeveloper.orders.application;
 
-import pl.fullstackdeveloper.payments.domain.CardNumber;
+import pl.fullstackdeveloper.orders.domain.CardReference;
 
 import java.util.List;
 
@@ -13,8 +13,8 @@ public class GetCardOrdersService implements GetCardOrdersUseCase {
     }
 
     @Override
-    public List<OrderView> handle(final CardNumber cardNumber) {
-        return orderRepository.findByCardNumber(cardNumber).stream().map(OrderView::from).toList();
+    public List<OrderView> handle(final CardReference cardReference) {
+        return orderRepository.findByCardReference(cardReference).stream().map(OrderView::from).toList();
     }
 
 }

@@ -1,25 +1,19 @@
 package pl.fullstackdeveloper.orders.domain;
 
-import pl.fullstackdeveloper.payments.domain.CardNumber;
-import pl.fullstackdeveloper.payments.domain.Money;
-
-/*
- UWAGA (krok 10 - wersja naiwna): model zamówień używa typów z domeny płatności (CardNumber, Money).
- Zmiana w payments.domain wymusza zmiany w orders - konteksty są ze sobą sklejone.
- */
 public final class Order {
 
     private final OrderId id;
     private final String description;
-    private final CardNumber cardNumber;
-    private final Money total;
+    private final CardReference cardReference;
+    private final Price total;
     private OrderStatus status = OrderStatus.NEW;
     private String paymentId;
+    private String rejectionReason;
 
-    public Order(final OrderId id, final String description, final CardNumber cardNumber, final Money total) {
+    public Order(final OrderId id, final String description, final CardReference cardReference, final Price total) {
         this.id = id;
         this.description = description;
-        this.cardNumber = cardNumber;
+        this.cardReference = cardReference;
         this.total = total;
     }
 
@@ -29,8 +23,9 @@ public final class Order {
         this.status = OrderStatus.PAID;
     }
 
-    public void reject() {
+    public void reject(final String reason) {
         requireStatus(OrderStatus.NEW);
+        this.rejectionReason = reason;
         this.status = OrderStatus.REJECTED;
     }
 
@@ -48,11 +43,11 @@ public final class Order {
         return description;
     }
 
-    public CardNumber getCardNumber() {
-        return cardNumber;
+    public CardReference getCardReference() {
+        return cardReference;
     }
 
-    public Money getTotal() {
+    public Price getTotal() {
         return total;
     }
 
@@ -62,6 +57,10 @@ public final class Order {
 
     public String getPaymentId() {
         return paymentId;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
     }
 
 }

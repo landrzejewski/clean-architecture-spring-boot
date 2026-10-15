@@ -78,5 +78,5 @@ Content-Type: application/json
   "currencyCode": "PLN"
 }
 
-### Zamówienia karty (cykl payments -> orders)
-GET http://localhost:8080/api/cards/{{number}}/orders
+### Zamówienia opłacone kartą (endpoint przeniesiony do orders)
+GET http://localhost:8080/api/orders?cardNumber={{number}}

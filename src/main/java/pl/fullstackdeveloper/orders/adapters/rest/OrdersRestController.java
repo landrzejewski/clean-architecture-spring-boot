@@ -7,16 +7,14 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.fullstackdeveloper.orders.application.GetOrderUseCase;
-import pl.fullstackdeveloper.orders.application.OrderView;
-import pl.fullstackdeveloper.orders.application.PlaceOrderCommand;
-import pl.fullstackdeveloper.orders.application.PlaceOrderUseCase;
+import pl.fullstackdeveloper.orders.application.*;
+import pl.fullstackdeveloper.orders.domain.CardReference;
 import pl.fullstackdeveloper.orders.domain.OrderId;
-import pl.fullstackdeveloper.payments.domain.CardNumber;
-import pl.fullstackdeveloper.payments.domain.Money;
+import pl.fullstackdeveloper.orders.domain.Price;
 
 import java.math.BigDecimal;
 import java.util.Currency;
+import java.util.List;
 import java.util.UUID;
 
 import static pl.fullstackdeveloper.common.web.LocationUri.fromRequest;
@@ -27,16 +25,19 @@ class OrdersRestController {
 
     private final PlaceOrderUseCase placeOrderUseCase;
     private final GetOrderUseCase getOrderUseCase;
+    private final GetCardOrdersUseCase getCardOrdersUseCase;
 
-    OrdersRestController(final PlaceOrderUseCase placeOrderUseCase, final GetOrderUseCase getOrderUseCase) {
+    OrdersRestController(final PlaceOrderUseCase placeOrderUseCase, final GetOrderUseCase getOrderUseCase,
+                         final GetCardOrdersUseCase getCardOrdersUseCase) {
         this.placeOrderUseCase = placeOrderUseCase;
         this.getOrderUseCase = getOrderUseCase;
+        this.getCardOrdersUseCase = getCardOrdersUseCase;
     }
 
     @PostMapping
     ResponseEntity<OrderView> placeOrder(@Validated @RequestBody final PlaceOrderRequest request) {
-        var total = new Money(request.amount(), Currency.getInstance(request.currencyCode()));
-        var orderId = placeOrderUseCase.handle(new PlaceOrderCommand(request.description(), new CardNumber(request.cardNumber()), total));
+        var total = new Price(request.amount(), Currency.getInstance(request.currencyCode()));
+        var orderId = placeOrderUseCase.handle(new PlaceOrderCommand(request.description(), new CardReference(request.cardNumber()), total));
         var view = getOrderUseCase.handle(orderId);
         return ResponseEntity.created(fromRequest(view.id())).body(view);
     }
@@ -44,6 +45,12 @@ class OrdersRestController {
     @GetMapping("{id}")
     OrderView getOrder(@PathVariable final UUID id) {
         return getOrderUseCase.handle(new OrderId(id));
+    }
+
+    // przeniesione z payments (GetCardOrdersRestController) - to zamówienia wiedzą, czym zostały opłacone
+    @GetMapping(params = "cardNumber")
+    List<OrderView> getCardOrders(@RequestParam final String cardNumber) {
+        return getCardOrdersUseCase.handle(new CardReference(cardNumber));
     }
 
     record PlaceOrderRequest(@NotBlank String description,

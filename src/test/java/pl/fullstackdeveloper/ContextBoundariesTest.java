@@ -1,39 +1,32 @@
 package pl.fullstackdeveloper;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 /*
- Reguły granic między kontekstami (payments, orders).
- W kroku 10 są CELOWO łamane - usuń @Disabled i uruchom test, żeby zobaczyć listę naruszeń.
- Naprawiamy je w 11-language-encapsulation.
+ Reguły granic między kontekstami - od kroku 11 włączone.
+ Java nie pozwala ukryć klas z podpakietów (payments.domain musi być public, żeby widziała go payments.application),
+ więc granica "tylko payments.api" jest egzekwowana testem, a nie kompilatorem. To zmienimy w 12/13.
  */
+@AnalyzeClasses(packages = "pl.fullstackdeveloper", importOptions = ImportOption.DoNotIncludeTests.class)
 class ContextBoundariesTest {
 
-    private final JavaClasses classes = new ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("pl.fullstackdeveloper");
+    @ArchTest
+    static final ArchRule contexts_are_free_of_cycles = slices().matching("pl.fullstackdeveloper.(*)..")
+            .should().beFreeOfCycles();
 
-    @Disabled("Krok 10: payments <-> orders tworzą cykl (GetCardOrdersRestController <-> PlaceOrderService)")
-    @Test
-    void contexts_are_free_of_cycles() {
-        slices().matching("pl.fullstackdeveloper.(*)..")
-                .should().beFreeOfCycles()
-                .check(classes);
-    }
+    @ArchTest
+    static final ArchRule orders_use_only_payments_api = noClasses().that().resideInAPackage("..orders..")
+            .should().dependOnClassesThat().resideInAnyPackage("..payments.domain..", "..payments.application..", "..payments.adapters..")
+            .because("publicznym kontraktem płatności jest wyłącznie pakiet payments.api");
 
-    @Disabled("Krok 10: orders sięga do payments.domain i payments.application (CardRepository, Card, Transaction)")
-    @Test
-    void orders_do_not_access_payments_internals() {
-        noClasses().that().resideInAPackage("..orders..")
-                .should().dependOnClassesThat().resideInAnyPackage("..payments.domain..", "..payments.application..")
-                .check(classes);
-    }
+    @ArchTest
+    static final ArchRule payments_do_not_know_orders = noClasses().that().resideInAPackage("..payments..")
+            .should().dependOnClassesThat().resideInAPackage("..orders..");
 
 }

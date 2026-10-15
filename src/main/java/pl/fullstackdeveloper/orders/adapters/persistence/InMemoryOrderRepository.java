@@ -2,9 +2,9 @@ package pl.fullstackdeveloper.orders.adapters.persistence;
 
 import pl.fullstackdeveloper.common.annotations.Adapter;
 import pl.fullstackdeveloper.orders.application.OrderRepository;
+import pl.fullstackdeveloper.orders.domain.CardReference;
 import pl.fullstackdeveloper.orders.domain.Order;
 import pl.fullstackdeveloper.orders.domain.OrderId;
-import pl.fullstackdeveloper.payments.domain.CardNumber;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +22,8 @@ class InMemoryOrderRepository implements OrderRepository {
     }
 
     @Override
-    public List<Order> findByCardNumber(final CardNumber cardNumber) {
-        return orders.values().stream().filter(order -> order.getCardNumber().equals(cardNumber)).toList();
+    public List<Order> findByCardReference(final CardReference cardReference) {
+        return orders.values().stream().filter(order -> order.getCardReference().equals(cardReference)).toList();
     }
 
     @Override
