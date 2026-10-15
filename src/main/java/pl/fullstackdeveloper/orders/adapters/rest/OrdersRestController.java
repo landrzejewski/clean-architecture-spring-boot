@@ -26,26 +26,34 @@ class OrdersRestController {
     private final PlaceOrderUseCase placeOrderUseCase;
     private final GetOrderUseCase getOrderUseCase;
     private final GetCardOrdersUseCase getCardOrdersUseCase;
+    private final GetOrderSagaUseCase getOrderSagaUseCase;
 
     OrdersRestController(final PlaceOrderUseCase placeOrderUseCase, final GetOrderUseCase getOrderUseCase,
-                         final GetCardOrdersUseCase getCardOrdersUseCase) {
+                         final GetCardOrdersUseCase getCardOrdersUseCase, final GetOrderSagaUseCase getOrderSagaUseCase) {
         this.placeOrderUseCase = placeOrderUseCase;
         this.getOrderUseCase = getOrderUseCase;
         this.getCardOrdersUseCase = getCardOrdersUseCase;
+        this.getOrderSagaUseCase = getOrderSagaUseCase;
     }
 
     @PostMapping
     ResponseEntity<OrderView> placeOrder(@Validated @RequestBody final PlaceOrderRequest request) {
         var total = new Price(request.amount(), Currency.getInstance(request.currencyCode()));
-        var orderId = placeOrderUseCase.handle(new PlaceOrderCommand(request.description(), new CardReference(request.cardNumber()), total));
+        var orderId = placeOrderUseCase.handle(new PlaceOrderCommand(request.description(), new CardReference(request.cardNumber()), total, request.address()));
         var view = getOrderUseCase.handle(orderId);
-        // 202 Accepted: zamówienie przyjęte, wynik płatności może przyjść później (status AWAITING_PAYMENT)
+        // 202 Accepted: zamówienie przyjęte, saga (płatność, wysyłka) toczy się asynchronicznie
         return ResponseEntity.accepted().location(fromRequest(view.id())).body(view);
     }
 
     @GetMapping("{id}")
     OrderView getOrder(@PathVariable final UUID id) {
         return getOrderUseCase.handle(new OrderId(id));
+    }
+
+    // stan procesu (sagi) dla zamówienia - przydatne przy diagnozie i demo kompensacji
+    @GetMapping("{id}/saga")
+    SagaView getOrderSaga(@PathVariable final UUID id) {
+        return getOrderSagaUseCase.handle(new OrderId(id));
     }
 
     // przeniesione z payments (GetCardOrdersRestController) - to zamówienia wiedzą, czym zostały opłacone
@@ -57,7 +65,8 @@ class OrdersRestController {
     record PlaceOrderRequest(@NotBlank String description,
                              @NotNull @Pattern(regexp = "\\d{16,19}") String cardNumber,
                              @NotNull @Positive BigDecimal amount,
-                             @NotNull @Pattern(regexp = "[A-Z]{3}") String currencyCode) {
+                             @NotNull @Pattern(regexp = "[A-Z]{3}") String currencyCode,
+                             @NotBlank String address) {
     }
 
 }

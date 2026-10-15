@@ -40,7 +40,9 @@ class JpaOrderRepositoryAdapter implements OrderRepository {
         entity.setCardReference(order.getCardReference().value());
         entity.setAmount(order.getTotal().amount());
         entity.setCurrencyCode(order.getTotal().currency().getCurrencyCode());
+        entity.setAddress(order.getAddress());
         entity.setStatus(order.getStatus());
+        entity.setShipmentId(order.getShipmentId());
         entity.setPaymentId(order.getPaymentId());
         entity.setRejectionReason(order.getRejectionReason());
         return toDomain(repository.save(entity));
@@ -49,8 +51,8 @@ class JpaOrderRepositoryAdapter implements OrderRepository {
     private Order toDomain(final OrderEntity entity) {
         return Order.restore(new OrderId(UUID.fromString(entity.getId())), entity.getDescription(),
                 new CardReference(entity.getCardReference()),
-                new Price(entity.getAmount(), Currency.getInstance(entity.getCurrencyCode())),
-                entity.getStatus(), entity.getPaymentId(), entity.getRejectionReason());
+                new Price(entity.getAmount(), Currency.getInstance(entity.getCurrencyCode())), entity.getAddress(),
+                entity.getStatus(), entity.getPaymentId(), entity.getShipmentId(), entity.getRejectionReason());
     }
 
 }

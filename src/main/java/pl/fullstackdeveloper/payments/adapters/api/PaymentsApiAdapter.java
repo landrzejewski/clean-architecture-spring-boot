@@ -29,9 +29,18 @@ class PaymentsApiAdapter implements PaymentsApi {
 
     @Override
     public PaymentResult pay(final PaymentRequest request) {
+        return register(request, TransactionType.PAYMENT);
+    }
+
+    @Override
+    public PaymentResult refund(final PaymentRequest request) {
+        return register(request, TransactionType.INFLOW);
+    }
+
+    private PaymentResult register(final PaymentRequest request, final TransactionType type) {
         try {
             var value = new Money(request.amount(), Currency.getInstance(request.currencyCode()));
-            var command = new AddTransactionCommand(new CardNumber(request.cardNumber()), value, TransactionType.PAYMENT);
+            var command = new AddTransactionCommand(new CardNumber(request.cardNumber()), value, type);
             var transactionId = addTransactionUseCase.handle(command);
             return new PaymentResult.Completed(transactionId.value().toString());
         } catch (DomainException | CardNotFoundException | IllegalArgumentException exception) {

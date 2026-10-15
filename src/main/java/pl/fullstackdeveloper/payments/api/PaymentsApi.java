@@ -8,4 +8,7 @@ public interface PaymentsApi {
 
     PaymentResult pay(PaymentRequest request);
 
+    // zwrot = wpłata na kartę (kompensacja płatności)
+    PaymentResult refund(PaymentRequest request);
+
 }

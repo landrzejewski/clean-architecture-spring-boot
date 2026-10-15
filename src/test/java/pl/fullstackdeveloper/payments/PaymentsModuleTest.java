@@ -20,12 +20,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static pl.fullstackdeveloper.payments.domain.TransactionType.INFLOW;
 
 @ApplicationModuleTest(extraIncludes = "common")
+@org.springframework.context.annotation.Import(PaymentsModuleTest.CardBalances.class)
 class PaymentsModuleTest {
 
     @Autowired
     private AddCardUseCase addCard;
     @Autowired
     private AddTransactionUseCase addTransaction;
+    @Autowired
+    private CardBalances cardRepository;
+
+    // pomocniczy odczyt salda w transakcji
+    @org.springframework.boot.test.context.TestComponent
+    static class CardBalances {
+
+        private final pl.fullstackdeveloper.payments.application.CardRepository cards;
+        private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+
+        CardBalances(final pl.fullstackdeveloper.payments.application.CardRepository cards,
+                     final org.springframework.transaction.support.TransactionTemplate transactionTemplate) {
+            this.cards = cards;
+            this.transactionTemplate = transactionTemplate;
+        }
+
+        Money findBalance(final pl.fullstackdeveloper.payments.domain.CardNumber cardNumber) {
+            return transactionTemplate.execute(status -> cards.findByNumber(cardNumber).orElseThrow().getBalance());
+        }
+
+    }
 
     @Test
     void payment_request_is_processed_and_answered_with_event(final Scenario scenario) {
@@ -46,6 +68,25 @@ class PaymentsModuleTest {
                 .andWaitForEventOfType(PaymentProcessed.class)
                 .matching(event -> event.reference().equals("order-2"))
                 .toArriveAndVerify(event -> assertThat(event.result()).isEqualTo(new PaymentResult.Rejected("Insufficient balance")));
+    }
+
+
+    @Test
+    void duplicated_payment_request_charges_card_only_once(final Scenario scenario) {
+        var cardNumber = addCard.handle(new AddCardCommand(Currency.getInstance("PLN")));
+        addTransaction.handle(new AddTransactionCommand(cardNumber, Money.of("100", "PLN"), INFLOW));
+        var request = new PaymentRequested("order-3", cardNumber.value(), new BigDecimal("30"), "PLN");
+
+        scenario.publish(request)
+                .andWaitForEventOfType(PaymentProcessed.class)
+                .matching(event -> event.reference().equals("order-3"))
+                .toArrive();
+        scenario.publish(request)
+                .andWaitForEventOfType(PaymentProcessed.class)
+                .matching(event -> event.reference().equals("order-3"))
+                .toArriveAndVerify(event -> assertThat(event.result()).isInstanceOf(PaymentResult.Completed.class));
+
+        assertThat(cardRepository.findBalance(cardNumber)).isEqualTo(Money.of("70", "PLN"));
     }
 
 }

@@ -4,27 +4,23 @@ import pl.fullstackdeveloper.common.annotations.Atomic;
 import pl.fullstackdeveloper.orders.domain.Order;
 import pl.fullstackdeveloper.orders.domain.OrderId;
 
-/*
- Use case zależy wyłącznie od własnego portu Payments. W wariancie asynchronicznym zapis zamówienia
- i publikacja PaymentRequested trafiają do bazy w JEDNEJ transakcji (Event Publication Registry) -
- nie ma już okna, w którym zamówienie istnieje, a żądanie płatności zginęło.
- */
+// Złożenie zamówienia = zapis zamówienia + start sagi (w jednej transakcji)
 @Atomic
 public class PlaceOrderService implements PlaceOrderUseCase {
 
     private final OrderRepository orderRepository;
-    private final Payments payments;
+    private final OrderSagaOrchestrator sagaOrchestrator;
 
-    public PlaceOrderService(final OrderRepository orderRepository, final Payments payments) {
+    public PlaceOrderService(final OrderRepository orderRepository, final OrderSagaOrchestrator sagaOrchestrator) {
         this.orderRepository = orderRepository;
-        this.payments = payments;
+        this.sagaOrchestrator = sagaOrchestrator;
     }
 
     @Override
     public OrderId handle(final PlaceOrderCommand command) {
-        var order = new Order(new OrderId(), command.description(), command.cardReference(), command.total());
+        var order = new Order(new OrderId(), command.description(), command.cardReference(), command.total(), command.address());
         orderRepository.save(order);
-        payments.requestPayment(order.getId(), command.cardReference(), command.total());
+        sagaOrchestrator.start(order);
         return order.getId();
     }
 

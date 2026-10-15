@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OrderTest {
 
-    private final Order order = new Order(new OrderId(), "Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN"));
+    private final Order order = new Order(new OrderId(), "Pizza", new CardReference("1111222233334444"), Price.of("40", "PLN"), "Warszawa, Polna 1");
 
     @Test
     void new_order_awaits_payment() {

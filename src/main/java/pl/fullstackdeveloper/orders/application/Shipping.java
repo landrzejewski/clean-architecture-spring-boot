@@ -2,8 +2,8 @@ package pl.fullstackdeveloper.orders.application;
 
 import pl.fullstackdeveloper.orders.domain.OrderId;
 
-public interface CompletePaymentUseCase {
+public interface Shipping {
 
-    void handle(OrderId orderId, PaymentOutcome outcome);
+    void requestShipment(OrderId orderId, String address);
 
 }

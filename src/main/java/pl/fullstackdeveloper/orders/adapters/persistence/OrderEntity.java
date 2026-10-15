@@ -15,9 +15,11 @@ class OrderEntity {
     private String cardReference;
     private BigDecimal amount;
     private String currencyCode;
+    private String address;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
     private String paymentId;
+    private String shipmentId;
     private String rejectionReason;
     @Version
     private long version;
@@ -63,6 +65,22 @@ class OrderEntity {
 
     void setCurrencyCode(final String currencyCode) {
         this.currencyCode = currencyCode;
+    }
+
+    String getAddress() {
+        return address;
+    }
+
+    void setAddress(final String address) {
+        this.address = address;
+    }
+
+    String getShipmentId() {
+        return shipmentId;
+    }
+
+    void setShipmentId(final String shipmentId) {
+        this.shipmentId = shipmentId;
     }
 
     OrderStatus getStatus() {

@@ -5,17 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import pl.fullstackdeveloper.common.annotations.Adapter;
-import pl.fullstackdeveloper.payments.api.PaymentProcessed;
-import pl.fullstackdeveloper.payments.api.PaymentRequest;
-import pl.fullstackdeveloper.payments.api.PaymentRequested;
-import pl.fullstackdeveloper.payments.api.PaymentsApi;
+import pl.fullstackdeveloper.payments.api.*;
 
 /*
- @ApplicationModuleListener = @Async + @Transactional(REQUIRES_NEW) + @TransactionalEventListener(AFTER_COMMIT).
- Listener działa w nowej transakcji, w której: obciążamy kartę, publikujemy PaymentProcessed (zapis w
- Event Publication Registry) i oznaczamy przetworzenie PaymentRequested - wszystko albo nic.
- Gdy listener rzuci wyjątek, publikacja zostaje "niekompletna" i zostanie ponowiona (po restarcie
- lub przez IncompleteEventPublications) - stąd wymóg idempotentności przy dostarczaniu at-least-once.
+ Kroki sagi po stronie płatności: obciążenie karty i jego kompensacja (zwrot).
+ Oba są idempotentne (ProcessedMessages) - saga może je bezpiecznie ponawiać (retry, timeout, restart).
  */
 @Adapter
 class PaymentRequestedListener {
@@ -23,18 +17,30 @@ class PaymentRequestedListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(PaymentRequestedListener.class);
 
     private final PaymentsApi paymentsApi;
+    private final ProcessedMessages processedMessages;
     private final ApplicationEventPublisher eventPublisher;
 
-    PaymentRequestedListener(final PaymentsApi paymentsApi, final ApplicationEventPublisher eventPublisher) {
+    PaymentRequestedListener(final PaymentsApi paymentsApi, final ProcessedMessages processedMessages,
+                             final ApplicationEventPublisher eventPublisher) {
         this.paymentsApi = paymentsApi;
+        this.processedMessages = processedMessages;
         this.eventPublisher = eventPublisher;
     }
 
     @ApplicationModuleListener
     void on(final PaymentRequested request) {
         LOGGER.info("Processing payment request {}", request.reference());
-        var result = paymentsApi.pay(new PaymentRequest(request.cardNumber(), request.amount(), request.currencyCode()));
+        var result = processedMessages.processOnce("payment:" + request.reference(), () ->
+                paymentsApi.pay(new PaymentRequest(request.cardNumber(), request.amount(), request.currencyCode())));
         eventPublisher.publishEvent(new PaymentProcessed(request.reference(), result));
+    }
+
+    @ApplicationModuleListener
+    void on(final RefundRequested request) {
+        LOGGER.info("Processing refund request {}", request.reference());
+        var result = processedMessages.processOnce("refund:" + request.reference(), () ->
+                paymentsApi.refund(new PaymentRequest(request.cardNumber(), request.amount(), request.currencyCode())));
+        eventPublisher.publishEvent(new RefundProcessed(request.reference(), result));
     }
 
 }

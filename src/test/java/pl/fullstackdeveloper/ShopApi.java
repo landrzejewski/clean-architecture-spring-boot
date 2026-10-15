@@ -30,10 +30,18 @@ final class ShopApi {
         return cardNumber;
     }
 
-    ResultActions placeOrder(final String cardNumber, final String amount, final String currency) throws Exception {
+    ResultActions placeOrder(final String cardNumber, final String amount, final String currency, final String address) throws Exception {
         return mockMvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON).content("""
-                {"description": "Item", "cardNumber": "%s", "amount": %s, "currencyCode": "%s"}
-                """.formatted(cardNumber, amount, currency)));
+                {"description": "Item", "cardNumber": "%s", "amount": %s, "currencyCode": "%s", "address": "%s"}
+                """.formatted(cardNumber, amount, currency, address)));
+    }
+
+    ResultActions getCard(final String cardNumber) throws Exception {
+        return mockMvc.perform(get("/api/cards/" + cardNumber));
+    }
+
+    ResultActions getSaga(final String orderId) throws Exception {
+        return mockMvc.perform(get("/api/orders/" + orderId + "/saga"));
     }
 
     String orderId(final ResultActions placeOrderResult) throws Exception {

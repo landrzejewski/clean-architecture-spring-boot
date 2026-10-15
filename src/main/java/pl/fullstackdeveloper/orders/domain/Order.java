@@ -6,23 +6,28 @@ public final class Order {
     private final String description;
     private final CardReference cardReference;
     private final Price total;
+    private final String address;
     private OrderStatus status = OrderStatus.AWAITING_PAYMENT;
     private String paymentId;
+    private String shipmentId;
     private String rejectionReason;
 
-    public Order(final OrderId id, final String description, final CardReference cardReference, final Price total) {
+    public Order(final OrderId id, final String description, final CardReference cardReference, final Price total, final String address) {
         this.id = id;
         this.description = description;
         this.cardReference = cardReference;
         this.total = total;
+        this.address = address;
     }
 
     // Odtworzenie zamówienia z bazy (adapter persystencji) - bez walidacji przejść stanów
     public static Order restore(final OrderId id, final String description, final CardReference cardReference, final Price total,
-                                final OrderStatus status, final String paymentId, final String rejectionReason) {
-        var order = new Order(id, description, cardReference, total);
+                                final String address, final OrderStatus status, final String paymentId, final String shipmentId,
+                                final String rejectionReason) {
+        var order = new Order(id, description, cardReference, total, address);
         order.status = status;
         order.paymentId = paymentId;
+        order.shipmentId = shipmentId;
         order.rejectionReason = rejectionReason;
         return order;
     }
@@ -37,6 +42,19 @@ public final class Order {
         requireStatus(OrderStatus.AWAITING_PAYMENT);
         this.rejectionReason = reason;
         this.status = OrderStatus.REJECTED;
+    }
+
+    public void confirm(final String shipmentId) {
+        requireStatus(OrderStatus.PAID);
+        this.shipmentId = shipmentId;
+        this.status = OrderStatus.CONFIRMED;
+    }
+
+    // Anulowanie opłaconego zamówienia - stan końcowy po kompensacji sagi
+    public void cancel(final String reason) {
+        requireStatus(OrderStatus.PAID);
+        this.rejectionReason = reason;
+        this.status = OrderStatus.CANCELLED;
     }
 
     private void requireStatus(final OrderStatus expected) {
@@ -61,12 +79,20 @@ public final class Order {
         return total;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
     public OrderStatus getStatus() {
         return status;
     }
 
     public String getPaymentId() {
         return paymentId;
+    }
+
+    public String getShipmentId() {
+        return shipmentId;
     }
 
     public String getRejectionReason() {

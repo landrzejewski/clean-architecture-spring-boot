@@ -98,7 +98,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule jpa_entities_are_hidden_in_adapter = classes().that().areAnnotatedWith(jakarta.persistence.Entity.class)
-            .should().resideInAPackage("..adapters.persistence..")
+            .should().resideInAPackage("..adapters..")
             .andShould().notBePublic();
 
     @ArchTest

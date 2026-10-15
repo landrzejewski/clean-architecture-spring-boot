@@ -76,7 +76,8 @@ Content-Type: application/json
   "description": "Pizza",
   "cardNumber": "{{number}}",
   "amount": 40,
-  "currencyCode": "PLN"
+  "currencyCode": "PLN",
+  "address": "Warszawa, Polna 1"
 }
 
 ### Zamówienia opłacone kartą (endpoint przeniesiony do orders)
@@ -84,3 +85,19 @@ GET http://localhost:8080/api/orders?cardNumber={{number}}
 
 ### Status zamówienia (po chwili PAID / REJECTED)
 GET http://localhost:8080/api/orders/{{placeOrder.response.body.id}}
+
+### Saga z kompensacją: wysyłka niemożliwa -> zwrot środków -> CANCELLED
+# @name undeliverable
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "description": "Igloo",
+  "cardNumber": "{{number}}",
+  "amount": 40,
+  "currencyCode": "PLN",
+  "address": "Antarctica, McMurdo Station"
+}
+
+### Stan sagi
+GET http://localhost:8080/api/orders/{{undeliverable.response.body.id}}/saga
