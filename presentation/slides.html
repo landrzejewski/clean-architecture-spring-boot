@@ -1,0 +1,1053 @@
+<!DOCTYPE html><html lang="pl"><head><title>Czysta architektura w praktyce</title><meta property="og:title" content="Czysta architektura w praktyce"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0"><meta name="apple-mobile-web-app-capable" content="yes"><meta http-equiv="X-UA-Compatible" content="ie=edge"><meta property="og:type" content="website"><meta name="twitter:card" content="summary"><style>@media screen{body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button,body[data-bespoke-view=overview] button.bespoke-marp-overview-close,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area .bespoke-marp-presenter-info-page,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{appearance:none;background-color:initial;border:0;color:inherit;cursor:pointer;font-size:inherit;opacity:.8;outline:none;padding:0;transition:opacity .2s linear;-webkit-tap-highlight-color:transparent}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:disabled,body[data-bespoke-view=overview] button.bespoke-marp-overview-close:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area .bespoke-marp-presenter-info-page:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:disabled,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:disabled{cursor:not-allowed;opacity:.15!important}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover,body[data-bespoke-view=overview] button.bespoke-marp-overview-close:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area .bespoke-marp-presenter-info-page:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover{opacity:1}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:active,body[data-bespoke-view=overview] button.bespoke-marp-overview-close:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area .bespoke-marp-presenter-info-page:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:active,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:active{opacity:.6}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button:hover:not(:disabled),body[data-bespoke-view=overview] button.bespoke-marp-overview-close:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area .bespoke-marp-presenter-info-page:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button:hover:not(:disabled),body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button:hover:not(:disabled){transition:none}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-prev{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNNjggOTAgMjggNTBsNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=""] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=next] .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button.bespoke-marp-presenter-info-page-next{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJtMzIgOTAgNDAtNDAtNDAtNDAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNNDAgNzBIMjBWNTBtMjAgMEwyMCA3MG00MC00MGgyMHYyMG0tMjAgMCAyMC0yMCIgY2xhc3M9ImEiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button.exit[data-bespoke-marp-osc=fullscreen]{background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI2MCIgeD0iMTAiIHk9IjIwIiBjbGFzcz0iYSIgcng9IjUuNjciLz48cGF0aCBkPSJNMjAgNTBoMjB2MjBtLTIwIDAgMjAtMjBtNDAgMEg2MFYzMG0yMCAwTDYwIDUwIiBjbGFzcz0iYSIvPjwvc3ZnPg==")}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNODcuOCA0Ny41Qzg5IDUwIDg3LjcgNTIgODUgNTJIMzVhOC43IDguNyAwIDAgMS03LjItNC41bC0xNS42LTMxQzExIDE0IDEyLjIgMTIgMTUgMTJoNTBhOC44IDguOCAwIDAgMSA3LjIgNC41ek02MCA1MnYzNm0tMTAgMGgyME00NSA0MmgyMCIvPjwvc3ZnPg==") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=overview] button.bespoke-marp-overview-close,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-bigger{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODBNNTIgOTBWMTAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button.bespoke-marp-presenter-note-smaller{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI1IiBkPSJNMTIgNTBoODAiLz48L3N2Zz4=") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=overview]{background:#0000 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48c3R5bGU+LmF7ZmlsbDpub25lO3N0cm9rZTojZmZmO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2Utd2lkdGg6NXB4O3J4OjVweDtyeTo1cHg7d2lkdGg6MjVweDtoZWlnaHQ6MjVweH08L3N0eWxlPjwvZGVmcz48cmVjdCB4PSIyMCIgeT0iMjAiIGNsYXNzPSJhIi8+PHJlY3QgeD0iNTUiIHk9IjIwIiBjbGFzcz0iYSIvPjxyZWN0IHg9IjIwIiB5PSI1NSIgY2xhc3M9ImEiLz48cmVjdCB4PSI1NSIgeT0iNTUiIGNsYXNzPSJhIi8+PC9zdmc+") no-repeat 50%;background-size:contain;overflow:hidden;text-indent:100%;white-space:nowrap}}@keyframes __bespoke_marp_transition_reduced_outgoing__{0%{opacity:1}to{opacity:0}}@keyframes __bespoke_marp_transition_reduced_incoming__{0%{mix-blend-mode:plus-lighter;opacity:0}to{mix-blend-mode:plus-lighter;opacity:1}}.bespoke-marp-note,.bespoke-marp-osc,.bespoke-progress-parent{display:none;transition:none}@media screen{::view-transition-group(*){animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-timing-function:ease}::view-transition-new(*),::view-transition-old(*){animation-delay:0s;animation-direction:var(--marp-bespoke-transition-animation-direction,normal);animation-duration:var(--marp-bespoke-transition-animation-duration,.5s);animation-fill-mode:both;animation-name:var(--marp-bespoke-transition-animation-name,var(--marp-bespoke-transition-animation-name-fallback,__bespoke_marp_transition_no_animation__));mix-blend-mode:normal}::view-transition-old(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_outgoing__;animation-timing-function:ease}::view-transition-new(*){--marp-bespoke-transition-animation-name-fallback:__bespoke_marp_transition_reduced_incoming__;animation-timing-function:ease}::view-transition-new(root),::view-transition-old(root){animation-timing-function:linear}::view-transition-new(__bespoke_marp_transition_osc__),::view-transition-old(__bespoke_marp_transition_osc__){animation-duration:0s!important;animation-name:__bespoke_marp_transition_osc__!important}::view-transition-new(__bespoke_marp_transition_osc__){opacity:0!important}.bespoke-marp-transition-warming-up::view-transition-group(*),.bespoke-marp-transition-warming-up::view-transition-new(*),.bespoke-marp-transition-warming-up::view-transition-old(*){animation-play-state:paused!important}body,html{height:100%;margin:0}body{background:#000;overflow:hidden}svg.bespoke-marp-slide{content-visibility:hidden;interactivity:inert;opacity:0;pointer-events:none;z-index:-1}svg.bespoke-marp-slide:not(.bespoke-marp-active) *{view-transition-name:none!important}svg.bespoke-marp-slide.bespoke-marp-active{content-visibility:visible;interactivity:auto;opacity:1;pointer-events:auto;z-index:0}svg.bespoke-marp-slide.bespoke-marp-active.bespoke-marp-active-ready *{animation-name:__bespoke_marp__!important}@supports not (content-visibility:hidden){svg.bespoke-marp-slide[data-bespoke-marp-load=hideable]{display:none}svg.bespoke-marp-slide[data-bespoke-marp-load=hideable].bespoke-marp-active{display:block}}}@media screen and (prefers-reduced-motion:reduce){svg.bespoke-marp-slide *{view-transition-name:none!important}}@media screen{[data-bespoke-marp-fragment=inactive]{visibility:hidden}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent{inset:0;position:absolute}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc{background:#000000a6;border-radius:7px;bottom:50px;color:#fff;contain:paint;display:block;font-family:Helvetica,Arial,sans-serif;font-size:16px;left:50%;line-height:0;opacity:1;padding:12px;position:absolute;touch-action:manipulation;transform:translateX(-50%);transition:opacity .2s linear;-webkit-user-select:none;user-select:none;view-transition-name:__bespoke_marp_transition_osc__;white-space:nowrap;will-change:transform;z-index:1}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>:where(*){margin-left:6px}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>:where(*):where(:first-child){margin-left:0}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>span{opacity:.8}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>span[data-bespoke-marp-osc=page]{display:inline-block;min-width:140px;text-align:center}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=fullscreen],:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=next],:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=overview],:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=presenter],:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent>.bespoke-marp-osc>button[data-bespoke-marp-osc=prev]{height:32px;line-height:32px;width:32px}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent.bespoke-marp-inactive{cursor:none}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) .bespoke-marp-parent.bespoke-marp-inactive>.bespoke-marp-osc{opacity:0;pointer-events:none}:is(body[data-bespoke-view=""],body[data-bespoke-view=next]) svg.bespoke-marp-slide{height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent{background:#222;display:flex;height:5px;width:100%}body[data-bespoke-view=""] .bespoke-progress-parent+:where(.bespoke-marp-parent){top:5px}body[data-bespoke-view=""] .bespoke-progress-parent .bespoke-progress-bar{background:#0288d1;flex:0 0 0;transition:flex-basis .2s cubic-bezier(0,1,1,1)}body[data-bespoke-view=next]{background:#0000}body[data-bespoke-view=presenter]{background:#161616}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container{display:grid;font-family:Helvetica,Arial,sans-serif;grid-template:"current dragbar next" minmax(140px,1fr) "current dragbar note" 2fr "info    dragbar note" 3em;grid-template-columns:minmax(3px,var(--bespoke-marp-presenter-split-ratio,66%)) 0 minmax(3px,1fr);height:100%;left:0;position:absolute;top:0;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container :where(.bespoke-marp-parent){grid-area:current;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container :where(.bespoke-marp-parent) :where(svg.bespoke-marp-slide){height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container :where(.bespoke-marp-parent) :where(svg.bespoke-marp-slide).bespoke-marp-active{filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container{background:#0288d1;cursor:col-resize;grid-area:dragbar;margin-left:-3px;opacity:0;position:relative;transition:opacity .4s linear .1s;width:6px;z-index:10}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container:hover{opacity:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-dragbar-container.active{opacity:1;transition-delay:0s}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container{background:#222;cursor:pointer;display:none;grid-area:next;overflow:hidden;position:relative}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-next-container iframe.bespoke-marp-presenter-next{background:#0000;border:0;display:block;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));height:calc(100% - 40px);left:20px;pointer-events:none;position:absolute;interactivity:inert;top:20px;-webkit-user-select:none;user-select:none;width:calc(100% - 40px)}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container{background:#222;color:#eee;grid-area:note;position:relative;z-index:1}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper{display:block;inset:0;position:absolute}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons{background:#000000a6;border-radius:4px;bottom:0;display:flex;gap:4px;margin:12px;opacity:0;padding:6px;pointer-events:none;position:absolute;right:0;transition:opacity .2s linear}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-buttons:focus-within,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-presenter-note-wrapper:focus-within+.bespoke-marp-presenter-note-buttons,body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container:hover .bespoke-marp-presenter-note-buttons{opacity:1;pointer-events:auto}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note{box-sizing:border-box;font-size:calc(1.1em*var(--bespoke-marp-note-font-scale, 1));height:calc(100% - 40px);margin:20px;overflow:auto;padding-right:3px;white-space:pre-wrap;width:calc(100% - 40px);word-wrap:break-word;scrollbar-color:#eeeeee80 #0000;scrollbar-width:thin}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar{width:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-track{background:#0000}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note::-webkit-scrollbar-thumb{background:#eeeeee80;border-radius:6px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note:empty{pointer-events:none}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note.active{display:block}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:first-child{margin-top:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-note-container .bespoke-marp-note p:last-child{margin-bottom:0}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container{align-items:center;box-sizing:border-box;color:#eee;display:flex;flex-wrap:nowrap;grid-area:info;justify-content:center;overflow:hidden;padding:0 10px}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container :is(.bespoke-marp-presenter-info-page-area,.bespoke-marp-presenter-info-time,.bespoke-marp-presenter-info-timer){box-sizing:border-box;display:block;padding:0 10px;white-space:nowrap;width:100%}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container button{height:1.5em;line-height:1.5em;width:1.5em}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area{order:2;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-page-area .bespoke-marp-presenter-info-page{display:inline-block;min-width:120px;text-align:center}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-time{color:#999;order:1;text-align:left}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer{color:#999;order:3;text-align:right}body[data-bespoke-view=presenter] .bespoke-marp-presenter-container .bespoke-marp-presenter-info-container .bespoke-marp-presenter-info-timer:hover{cursor:pointer}body[data-bespoke-view=overview]{background:#161616;overflow:auto}body[data-bespoke-view=overview] [data-bespoke-marp-fragment=inactive]{visibility:visible}body[data-bespoke-view=overview] .bespoke-marp-overview-header{backdrop-filter:blur(4px);background:#222222d9;box-shadow:0 3px 10px #00000080;box-sizing:border-box;display:flex;height:48px;inset:0 0 auto;justify-content:flex-end;padding:10px;position:fixed;z-index:1}body[data-bespoke-view=overview] button.bespoke-marp-overview-close{height:28px;line-height:28px;transform:rotate(45deg);width:28px}body[data-bespoke-view=overview] .bespoke-marp-parent{display:grid;gap:40px;grid-template-columns:repeat(auto-fit,minmax(0,240px));justify-content:space-around;padding:30px}body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide{--bov-selected:#0000;--bov-focus:#161616;--bov-focus-outline:#0000;background-image:conic-gradient(#161616 0 0),conic-gradient(var(--bov-focus) 0 0),conic-gradient(var(--bov-focus-outline) 0 0),conic-gradient(var(--bov-selected) 0 0);background-position:5px 5px,3px 3px,2px 2px,0 0;background-repeat:no-repeat;background-size:calc(100% - 10px) calc(100% - 10px),calc(100% - 6px) calc(100% - 6px),calc(100% - 4px) calc(100% - 4px),100% 100%;content-visibility:visible;cursor:pointer;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5));margin:-6px;padding:6px;interactivity:auto;opacity:1;outline:0;pointer-events:auto;scroll-margin-block:30px;width:100%;z-index:0}body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide *,body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide.bespoke-marp-active *{pointer-events:none;interactivity:inert}body[data-bespoke-view=overview] .bespoke-marp-parent :is(svg.bespoke-marp-slide:active,svg.bespoke-marp-slide:focus-visible,svg.bespoke-marp-slide:hover){--bov-focus-outline:#161616}body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide:focus-visible,body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide:hover{--bov-focus:#999}body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide:active{--bov-focus:#eee}body[data-bespoke-view=overview] .bespoke-marp-parent svg.bespoke-marp-slide.bespoke-marp-active{--bov-selected:#0288d1}body[data-bespoke-view=overview]:has(.bespoke-marp-overview-header) .bespoke-marp-parent{padding-top:78px}body[data-bespoke-view=overview]:has(.bespoke-marp-overview-header) .bespoke-marp-parent svg.bespoke-marp-slide{scroll-margin-top:78px}.bespoke-marp-overview{background:#000000a6;inset:0;opacity:0;pointer-events:none;position:fixed;transition:opacity .1s ease;z-index:10}.bespoke-marp-overview iframe{background:#222;border:0;display:block;height:100%;left:0;position:absolute;top:0;width:100%}.bespoke-marp-overview[data-open="1"]{opacity:1;pointer-events:auto}}@media print{.bespoke-marp-overview,.bespoke-marp-presenter-info-container,.bespoke-marp-presenter-next-container,.bespoke-marp-presenter-note-container{display:none}}</style><style>div#\:\$p > svg > foreignObject > section{width:1280px;height:720px;box-sizing:border-box;overflow:hidden;position:relative;scroll-snap-align:center center;-webkit-text-size-adjust:100%;text-size-adjust:100%}div#\:\$p > svg > foreignObject > section::after{bottom:0;content:attr(data-marpit-pagination);padding:inherit;pointer-events:none;position:absolute;right:0}div#\:\$p > svg > foreignObject > section:not([data-marpit-pagination])::after{display:none}div#\:\$p > svg > foreignObject > section :where(:is(h1, marp-h1)){font-size:2em;margin-block:0.67em}div#\:\$p > svg > foreignObject > section section:where(:is(h1, marp-h1)){--marpit-root-font-size: 2em}div#\:\$p > svg > foreignObject > section video::-webkit-media-controls{will-change:transform}@page {size:1280px 720px;margin:0}@media print{html, body{background-color:#fff;margin:0;page-break-inside:avoid;break-inside:avoid-page}div#\:\$p > svg > foreignObject > section{page-break-before:always;break-before:page}div#\:\$p > svg > foreignObject > section, div#\:\$p > svg > foreignObject > section *{-webkit-print-color-adjust:exact!important;animation-delay:0s!important;animation-duration:0s!important;color-adjust:exact!important;print-color-adjust:exact!important;transition:none!important}div#\:\$p > svg[data-marpit-svg]{display:block;height:100vh;width:100vw}}div#\:\$p > svg > foreignObject > section{--fgColor-danger:light-dark(#d1242f, #f85149);--bgColor-attention-muted:light-dark(#fff8c5, #bb800926);--bgColor-muted:light-dark(#f6f8fa, #151b23);--bgColor-neutral-muted:light-dark(#818b981f, #656c7633);--borderColor-accent-emphasis:light-dark(#0969da, #1f6feb);--borderColor-attention-emphasis:light-dark(#9a6700, #9e6a03);--borderColor-danger-emphasis:light-dark(#cf222e, #da3633);--borderColor-default:light-dark(#d1d9e0, #3d444d);--borderColor-done-emphasis:light-dark(#8250df, #8957e5);--borderColor-success-emphasis:light-dark(#1a7f37, #238636);--color-prettylights-syntax-brackethighlighter-angle:light-dark(#59636e, #9198a1);--color-prettylights-syntax-brackethighlighter-unmatched:light-dark(#82071e, #f85149);--color-prettylights-syntax-carriage-return-bg:light-dark(#cf222e, #b62324);--color-prettylights-syntax-carriage-return-text:light-dark(#f6f8fa, #f0f6fc);--color-prettylights-syntax-comment:light-dark(#59636e, #9198a1);--color-prettylights-syntax-constant:light-dark(#0550ae, #79c0ff);--color-prettylights-syntax-constant-other-reference-link:light-dark(#0a3069, #a5d6ff);--color-prettylights-syntax-entity:light-dark(#6639ba, #d2a8ff);--color-prettylights-syntax-entity-tag:light-dark(#0550ae, #7ee787);--color-prettylights-syntax-invalid-illegal-text:light-dark(var(--fgColor-danger), var(--fgColor-danger));--color-prettylights-syntax-keyword:light-dark(#cf222e, #ff7b72);--color-prettylights-syntax-markup-changed-bg:light-dark(#ffd8b5, #5a1e02);--color-prettylights-syntax-markup-changed-text:light-dark(#953800, #ffdfb6);--color-prettylights-syntax-markup-deleted-bg:light-dark(#ffebe9, #67060c);--color-prettylights-syntax-markup-deleted-text:light-dark(#82071e, #ffdcd7);--color-prettylights-syntax-markup-heading:light-dark(#0550ae, #1f6feb);--color-prettylights-syntax-markup-ignored-bg:light-dark(#0550ae, #1158c7);--color-prettylights-syntax-markup-ignored-text:light-dark(#d1d9e0, #f0f6fc);--color-prettylights-syntax-markup-inserted-bg:light-dark(#dafbe1, #033a16);--color-prettylights-syntax-markup-inserted-text:light-dark(#116329, #aff5b4);--color-prettylights-syntax-markup-list:light-dark(#3b2300, #f2cc60);--color-prettylights-syntax-meta-diff-range:light-dark(#8250df, #d2a8ff);--color-prettylights-syntax-string:light-dark(#0a3069, #a5d6ff);--color-prettylights-syntax-string-regexp:light-dark(#116329, #7ee787);--color-prettylights-syntax-sublimelinter-gutter-mark:light-dark(#818b98, #3d444d);--color-prettylights-syntax-variable:light-dark(#953800, #ffa657);--fgColor-accent:light-dark(#0969da, #4493f8);--fgColor-attention:light-dark(#9a6700, #d29922);--fgColor-done:light-dark(#8250df, #ab7df8);--fgColor-muted:light-dark(#59636e, #9198a1);--fgColor-success:light-dark(#1a7f37, #3fb950);--bgColor-default:light-dark(#fff, #0d1117);--borderColor-muted:light-dark(#d1d9e0b3, #3d444db3);--color-prettylights-syntax-invalid-illegal-bg:light-dark(var(--bgColor-danger-muted), var(--bgColor-danger-muted));--color-prettylights-syntax-markup-bold:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-markup-italic:light-dark(#1f2328, #f0f6fc);--color-prettylights-syntax-storage-modifier-import:light-dark(#1f2328, #f0f6fc);--fgColor-default:light-dark(#1f2328, #f0f6fc);--focus-outlineColor:light-dark(var(--borderColor-accent-emphasis), var(--borderColor-accent-emphasis));--borderColor-neutral-muted:light-dark(var(--borderColor-muted), var(--borderColor-muted));--base-size-16:calc(var(--marpit-root-font-size, 1rem) * 1);--base-size-24:calc(var(--marpit-root-font-size, 1rem) * 1.5);--base-size-4:calc(var(--marpit-root-font-size, 1rem) * 0.25);--base-size-40:calc(var(--marpit-root-font-size, 1rem) * 2.5);--base-size-8:calc(var(--marpit-root-font-size, 1rem) * 0.5);--base-text-weight-medium:500;--base-text-weight-normal:400;--base-text-weight-semibold:600;--fontStack-monospace:ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fontStack-sansSerif:-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";}/*!
+ * Marp default theme.
+ *
+ * @theme default
+ * @author Yuki Hattori
+ *
+ * @auto-scaling true
+ * @size 16:9 1280px 720px
+ * @size 4:3 960px 720px
+ */div#\:\$p > svg > foreignObject > section [data-theme=light],div#\:\$p > svg > foreignObject > section{color-scheme:light}div#\:\$p > svg > foreignObject > section [data-theme=dark],div#\:\$p > svg > foreignObject > section:where(.invert){color-scheme:dark}div#\:\$p > svg > foreignObject > section{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;margin:0;font-weight:var(--base-text-weight-normal, 400);color:var(--fgColor-default);background-color:var(--bgColor-default);font-family:var(--fontStack-sansSerif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji");font-size:16px;line-height:1.5;word-wrap:break-word}div#\:\$p > svg > foreignObject > section{--marpit-root-font-size:16px}div#\:\$p > svg > foreignObject > section a{text-decoration:underline;text-underline-offset:calc(var(--marpit-root-font-size, 1rem) * .2)}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1):hover .anchor .octicon-link:before,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2):hover .anchor .octicon-link:before,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3):hover .anchor .octicon-link:before,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4):hover .anchor .octicon-link:before,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5):hover .anchor .octicon-link:before,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6):hover .anchor .octicon-link:before{width:16px;height:16px;content:" ";display:inline-block;background-color:currentColor;-webkit-mask-image:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0"/></svg>');mask-image:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0"/></svg>')}div#\:\$p > svg > foreignObject > section details,div#\:\$p > svg > foreignObject > section figcaption,div#\:\$p > svg > foreignObject > section figure{display:block}div#\:\$p > svg > foreignObject > section summary{display:list-item}div#\:\$p > svg > foreignObject > section [hidden]{display:none!important}div#\:\$p > svg > foreignObject > section a{background-color:transparent;color:var(--fgColor-accent);text-decoration:none}div#\:\$p > svg > foreignObject > section abbr[title]{border-bottom:none;-webkit-text-decoration:underline dotted;text-decoration:underline dotted}div#\:\$p > svg > foreignObject > section b,div#\:\$p > svg > foreignObject > section strong{font-weight:var(--base-text-weight-semibold, 600)}div#\:\$p > svg > foreignObject > section dfn{font-style:italic}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){margin:.67em 0;font-weight:var(--base-text-weight-semibold, 600);padding-bottom:.3em;font-size:2em;border-bottom:1px solid var(--borderColor-muted)}div#\:\$p > svg > foreignObject > section mark{background-color:var(--bgColor-attention-muted);color:var(--fgColor-default)}div#\:\$p > svg > foreignObject > section small{font-size:90%}div#\:\$p > svg > foreignObject > section sub,div#\:\$p > svg > foreignObject > section sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}div#\:\$p > svg > foreignObject > section sub{bottom:-.25em}div#\:\$p > svg > foreignObject > section sup{top:-.5em}div#\:\$p > svg > foreignObject > section img{border-style:none;max-width:100%;box-sizing:content-box}div#\:\$p > svg > foreignObject > section code,div#\:\$p > svg > foreignObject > section kbd,div#\:\$p > svg > foreignObject > section :is(pre, marp-pre),div#\:\$p > svg > foreignObject > section samp{font-family:monospace;font-size:1em}div#\:\$p > svg > foreignObject > section figure{margin:1em var(--base-size-40)}div#\:\$p > svg > foreignObject > section hr{box-sizing:content-box;overflow:hidden;background:transparent;height:.25em;padding:0;margin:var(--base-size-24) 0;background-color:var(--borderColor-default);border:0}div#\:\$p > svg > foreignObject > section input{font:inherit;margin:0;overflow:visible;font-family:inherit;font-size:inherit;line-height:inherit}div#\:\$p > svg > foreignObject > section [type=button],div#\:\$p > svg > foreignObject > section [type=reset],div#\:\$p > svg > foreignObject > section [type=submit]{-webkit-appearance:button;-moz-appearance:button;appearance:button}div#\:\$p > svg > foreignObject > section [type=checkbox],div#\:\$p > svg > foreignObject > section [type=radio]{box-sizing:border-box;padding:0}div#\:\$p > svg > foreignObject > section [type=number]::-webkit-inner-spin-button,div#\:\$p > svg > foreignObject > section [type=number]::-webkit-outer-spin-button{height:auto}div#\:\$p > svg > foreignObject > section [type=search]::-webkit-search-cancel-button,div#\:\$p > svg > foreignObject > section [type=search]::-webkit-search-decoration{-webkit-appearance:none;appearance:none}div#\:\$p > svg > foreignObject > section ::-webkit-input-placeholder{color:inherit;opacity:.54}div#\:\$p > svg > foreignObject > section ::-webkit-file-upload-button{-webkit-appearance:button;appearance:button;font:inherit}div#\:\$p > svg > foreignObject > section a:hover{text-decoration:underline}div#\:\$p > svg > foreignObject > section ::-moz-placeholder{color:var(--fgColor-muted);opacity:1}div#\:\$p > svg > foreignObject > section ::placeholder{color:var(--fgColor-muted);opacity:1}div#\:\$p > svg > foreignObject > section hr:after,div#\:\$p > svg > foreignObject > section hr:before{display:table;content:""}div#\:\$p > svg > foreignObject > section hr:after{clear:both}div#\:\$p > svg > foreignObject > section table{border-spacing:0;border-collapse:collapse;display:block;width:-moz-max-content;width:max-content;max-width:100%;overflow:auto;font-variant:tabular-nums}div#\:\$p > svg > foreignObject > section td,div#\:\$p > svg > foreignObject > section th{padding:0}div#\:\$p > svg > foreignObject > section details summary{cursor:pointer}div#\:\$p > svg > foreignObject > section [role=button]:focus,div#\:\$p > svg > foreignObject > section a:focus,div#\:\$p > svg > foreignObject > section input[type=checkbox]:focus,div#\:\$p > svg > foreignObject > section input[type=radio]:focus{outline:2px solid var(--focus-outlineColor);outline-offset:-2px;box-shadow:none}div#\:\$p > svg > foreignObject > section [role=button]:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section a:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section input[type=checkbox]:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section input[type=radio]:focus:not(:focus-visible){outline:1px solid transparent}div#\:\$p > svg > foreignObject > section [role=button]:focus-visible,div#\:\$p > svg > foreignObject > section a:focus-visible,div#\:\$p > svg > foreignObject > section input[type=checkbox]:focus-visible,div#\:\$p > svg > foreignObject > section input[type=radio]:focus-visible{outline:2px solid var(--focus-outlineColor);outline-offset:-2px;box-shadow:none}div#\:\$p > svg > foreignObject > section a:not([class]):focus,div#\:\$p > svg > foreignObject > section a:not([class]):focus-visible,div#\:\$p > svg > foreignObject > section input[type=checkbox]:focus,div#\:\$p > svg > foreignObject > section input[type=checkbox]:focus-visible,div#\:\$p > svg > foreignObject > section input[type=radio]:focus,div#\:\$p > svg > foreignObject > section input[type=radio]:focus-visible{outline-offset:0}div#\:\$p > svg > foreignObject > section kbd{display:inline-block;padding:var(--base-size-4);font:11px var(--fontStack-monospace, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace);line-height:10px;color:var(--fgColor-default);vertical-align:middle;background-color:var(--bgColor-muted);border-bottom-color:var(--borderColor-neutral-muted);border:1px solid var(--borderColor-neutral-muted);border-radius:6px;box-shadow:inset 0 -1px 0 var(--borderColor-neutral-muted)}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1),div#\:\$p > svg > foreignObject > section :is(h2, marp-h2),div#\:\$p > svg > foreignObject > section :is(h3, marp-h3),div#\:\$p > svg > foreignObject > section :is(h4, marp-h4),div#\:\$p > svg > foreignObject > section :is(h5, marp-h5),div#\:\$p > svg > foreignObject > section :is(h6, marp-h6){margin-top:var(--base-size-24);margin-bottom:var(--base-size-16);font-weight:var(--base-text-weight-semibold, 600);line-height:1.25}div#\:\$p > svg > foreignObject > section :is(h2, marp-h2){padding-bottom:.3em;font-size:1.5em;border-bottom:1px solid var(--borderColor-muted)}div#\:\$p > svg > foreignObject > section :is(h2, marp-h2),div#\:\$p > svg > foreignObject > section :is(h3, marp-h3){font-weight:var(--base-text-weight-semibold, 600)}div#\:\$p > svg > foreignObject > section :is(h3, marp-h3){font-size:1.25em}div#\:\$p > svg > foreignObject > section :is(h4, marp-h4){font-size:1em}div#\:\$p > svg > foreignObject > section :is(h4, marp-h4),div#\:\$p > svg > foreignObject > section :is(h5, marp-h5){font-weight:var(--base-text-weight-semibold, 600)}div#\:\$p > svg > foreignObject > section :is(h5, marp-h5){font-size:.875em}div#\:\$p > svg > foreignObject > section :is(h6, marp-h6){font-weight:var(--base-text-weight-semibold, 600);font-size:.85em;color:var(--fgColor-muted)}div#\:\$p > svg > foreignObject > section p{margin-top:0;margin-bottom:10px}div#\:\$p > svg > foreignObject > section blockquote{margin:0;padding:0 1em;color:var(--fgColor-muted);border-left:.25em solid var(--borderColor-default)}div#\:\$p > svg > foreignObject > section ol,div#\:\$p > svg > foreignObject > section ul{margin-top:0;margin-bottom:0;padding-left:2em}div#\:\$p > svg > foreignObject > section ol ol,div#\:\$p > svg > foreignObject > section ul ol{list-style-type:lower-roman}div#\:\$p > svg > foreignObject > section ol ol ol,div#\:\$p > svg > foreignObject > section ol ul ol,div#\:\$p > svg > foreignObject > section ul ol ol,div#\:\$p > svg > foreignObject > section ul ul ol{list-style-type:lower-alpha}div#\:\$p > svg > foreignObject > section dd{margin-left:0}div#\:\$p > svg > foreignObject > section code,div#\:\$p > svg > foreignObject > section :is(pre, marp-pre),div#\:\$p > svg > foreignObject > section samp,div#\:\$p > svg > foreignObject > section tt{font-family:var(--fontStack-monospace, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace);font-size:12px}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre){margin-top:0;margin-bottom:0;word-wrap:normal}div#\:\$p > svg > foreignObject > section .octicon{display:inline-block;overflow:visible!important;vertical-align:text-bottom;fill:currentColor}div#\:\$p > svg > foreignObject > section input::-webkit-inner-spin-button,div#\:\$p > svg > foreignObject > section input::-webkit-outer-spin-button{margin:0;-webkit-appearance:none;appearance:none}div#\:\$p > svg > foreignObject > section .mr-2{margin-right:var(--base-size-8, 8px)!important}div#\:\$p > svg > foreignObject > section:after,div#\:\$p > svg > foreignObject > section:before{display:table}div#\:\$p > svg > foreignObject > section:after{clear:both}div#\:\$p > svg > foreignObject > section>:first-child{margin-top:0!important}div#\:\$p > svg > foreignObject > section>:last-child{margin-bottom:0!important}div#\:\$p > svg > foreignObject > section a:not([href]){color:inherit;text-decoration:none}div#\:\$p > svg > foreignObject > section .absent{color:var(--fgColor-danger)}div#\:\$p > svg > foreignObject > section .anchor{float:left;padding-right:var(--base-size-4);margin-left:-20px;line-height:1}div#\:\$p > svg > foreignObject > section .anchor:focus{outline:none}div#\:\$p > svg > foreignObject > section blockquote,div#\:\$p > svg > foreignObject > section details,div#\:\$p > svg > foreignObject > section dl,div#\:\$p > svg > foreignObject > section ol,div#\:\$p > svg > foreignObject > section p,div#\:\$p > svg > foreignObject > section :is(pre, marp-pre),div#\:\$p > svg > foreignObject > section table,div#\:\$p > svg > foreignObject > section ul{margin-top:0;margin-bottom:var(--base-size-16)}div#\:\$p > svg > foreignObject > section blockquote>:first-child{margin-top:0}div#\:\$p > svg > foreignObject > section blockquote>:last-child{margin-bottom:0}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1) .octicon-link,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2) .octicon-link,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3) .octicon-link,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4) .octicon-link,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5) .octicon-link,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6) .octicon-link{color:var(--fgColor-default);vertical-align:middle;visibility:hidden}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1):hover .anchor,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2):hover .anchor,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3):hover .anchor,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4):hover .anchor,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5):hover .anchor,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6):hover .anchor{text-decoration:none}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1):hover .anchor .octicon-link,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2):hover .anchor .octicon-link,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3):hover .anchor .octicon-link,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4):hover .anchor .octicon-link,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5):hover .anchor .octicon-link,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6):hover .anchor .octicon-link{visibility:visible}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1) code,div#\:\$p > svg > foreignObject > section :is(h1, marp-h1) tt,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2) code,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2) tt,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3) code,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3) tt,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4) code,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4) tt,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5) code,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5) tt,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6) code,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6) tt{padding:0 .2em;font-size:inherit}div#\:\$p > svg > foreignObject > section summary :is(h1, marp-h1),div#\:\$p > svg > foreignObject > section summary :is(h2, marp-h2),div#\:\$p > svg > foreignObject > section summary :is(h3, marp-h3),div#\:\$p > svg > foreignObject > section summary :is(h4, marp-h4),div#\:\$p > svg > foreignObject > section summary :is(h5, marp-h5),div#\:\$p > svg > foreignObject > section summary :is(h6, marp-h6){display:inline-block}div#\:\$p > svg > foreignObject > section summary :is(h1, marp-h1) .anchor,div#\:\$p > svg > foreignObject > section summary :is(h2, marp-h2) .anchor,div#\:\$p > svg > foreignObject > section summary :is(h3, marp-h3) .anchor,div#\:\$p > svg > foreignObject > section summary :is(h4, marp-h4) .anchor,div#\:\$p > svg > foreignObject > section summary :is(h5, marp-h5) .anchor,div#\:\$p > svg > foreignObject > section summary :is(h6, marp-h6) .anchor{margin-left:-40px}div#\:\$p > svg > foreignObject > section summary :is(h1, marp-h1),div#\:\$p > svg > foreignObject > section summary :is(h2, marp-h2){padding-bottom:0;border-bottom:0}div#\:\$p > svg > foreignObject > section ol.no-list,div#\:\$p > svg > foreignObject > section ul.no-list{padding:0;list-style-type:none}div#\:\$p > svg > foreignObject > section ol[type="a s"]{list-style-type:lower-alpha}div#\:\$p > svg > foreignObject > section ol[type="A s"]{list-style-type:upper-alpha}div#\:\$p > svg > foreignObject > section ol[type="i s"]{list-style-type:lower-roman}div#\:\$p > svg > foreignObject > section ol[type="I s"]{list-style-type:upper-roman}div#\:\$p > svg > foreignObject > section div>ol:not([type]),div#\:\$p > svg > foreignObject > section ol[type="1"]{list-style-type:decimal}div#\:\$p > svg > foreignObject > section ol ol,div#\:\$p > svg > foreignObject > section ol ul,div#\:\$p > svg > foreignObject > section ul ol,div#\:\$p > svg > foreignObject > section ul ul{margin-top:0;margin-bottom:0}div#\:\$p > svg > foreignObject > section li>p{margin-top:var(--base-size-16)}div#\:\$p > svg > foreignObject > section li+li{margin-top:.25em}div#\:\$p > svg > foreignObject > section dl{padding:0}div#\:\$p > svg > foreignObject > section dl dt{padding:0;margin-top:var(--base-size-16);font-size:1em;font-style:italic;font-weight:var(--base-text-weight-semibold, 600)}div#\:\$p > svg > foreignObject > section dl dd{padding:0 var(--base-size-16);margin-bottom:var(--base-size-16)}div#\:\$p > svg > foreignObject > section table th{font-weight:var(--base-text-weight-semibold, 600)}div#\:\$p > svg > foreignObject > section table td,div#\:\$p > svg > foreignObject > section table th{padding:6px 13px;border:1px solid var(--borderColor-default)}div#\:\$p > svg > foreignObject > section table td>:last-child{margin-bottom:0}div#\:\$p > svg > foreignObject > section table tr{background-color:var(--bgColor-default);border-top:1px solid var(--borderColor-muted)}div#\:\$p > svg > foreignObject > section table tr:nth-child(2n){background-color:var(--bgColor-muted)}div#\:\$p > svg > foreignObject > section table img{background-color:transparent}div#\:\$p > svg > foreignObject > section img[align=right]{padding-left:20px}div#\:\$p > svg > foreignObject > section img[align=left]{padding-right:20px}div#\:\$p > svg > foreignObject > section .emoji{max-width:none;vertical-align:text-top;background-color:transparent}div#\:\$p > svg > foreignObject > section :is(span, marp-span).frame,div#\:\$p > svg > foreignObject > section :is(span, marp-span).frame>:is(span, marp-span){display:block;overflow:hidden}div#\:\$p > svg > foreignObject > section :is(span, marp-span).frame>:is(span, marp-span){float:left;width:auto;padding:7px;margin:13px 0 0;border:1px solid var(--borderColor-default)}div#\:\$p > svg > foreignObject > section :is(span, marp-span).frame :is(span, marp-span) img{display:block;float:left}div#\:\$p > svg > foreignObject > section :is(span, marp-span).frame :is(span, marp-span) :is(span, marp-span){display:block;padding:5px 0 0;clear:both;color:var(--fgColor-default)}div#\:\$p > svg > foreignObject > section :is(span, marp-span).align-center{display:block;overflow:hidden;clear:both}div#\:\$p > svg > foreignObject > section :is(span, marp-span).align-center>:is(span, marp-span){display:block;margin:13px auto 0;overflow:hidden;text-align:center}div#\:\$p > svg > foreignObject > section :is(span, marp-span).align-center :is(span, marp-span) img{margin:0 auto;text-align:center}div#\:\$p > svg > foreignObject > section :is(span, marp-span).align-right{display:block;overflow:hidden;clear:both}div#\:\$p > svg > foreignObject > section :is(span, marp-span).align-right>:is(span, marp-span){display:block;margin:13px 0 0;overflow:hidden;text-align:right}div#\:\$p > svg > foreignObject > section :is(span, marp-span).align-right :is(span, marp-span) img{margin:0;text-align:right}div#\:\$p > svg > foreignObject > section :is(span, marp-span).float-left{display:block;float:left;margin-right:13px;overflow:hidden}div#\:\$p > svg > foreignObject > section :is(span, marp-span).float-left :is(span, marp-span){margin:13px 0 0}div#\:\$p > svg > foreignObject > section :is(span, marp-span).float-right{display:block;float:right;margin-left:13px;overflow:hidden}div#\:\$p > svg > foreignObject > section :is(span, marp-span).float-right>:is(span, marp-span){display:block;margin:13px auto 0;overflow:hidden;text-align:right}div#\:\$p > svg > foreignObject > section code,div#\:\$p > svg > foreignObject > section tt{padding:.2em .4em;margin:0;font-size:85%;white-space:break-spaces;background-color:var(--bgColor-neutral-muted);border-radius:6px}div#\:\$p > svg > foreignObject > section code br,div#\:\$p > svg > foreignObject > section tt br{display:none}div#\:\$p > svg > foreignObject > section del code{text-decoration:inherit}div#\:\$p > svg > foreignObject > section samp{font-size:85%}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) code{font-size:100%}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre)>code{padding:0;margin:0;word-break:normal;white-space:pre;background:transparent;border:0}div#\:\$p > svg > foreignObject > section .highlight{margin-bottom:var(--base-size-16)}div#\:\$p > svg > foreignObject > section .highlight :is(pre, marp-pre){margin-bottom:0;word-break:normal}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre){padding:var(--base-size-16);overflow:auto;font-size:85%;line-height:1.45;color:var(--fgColor-default);background-color:var(--bgColor-muted);border-radius:6px}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) code,div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) tt{display:inline;padding:0;margin:0;overflow:visible;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}div#\:\$p > svg > foreignObject > section .csv-data td,div#\:\$p > svg > foreignObject > section .csv-data th{padding:5px;overflow:hidden;font-size:12px;line-height:1;text-align:left;white-space:nowrap}div#\:\$p > svg > foreignObject > section .csv-data .blob-num{padding:10px var(--base-size-8) 9px;text-align:right;background:var(--bgColor-default);border:0}div#\:\$p > svg > foreignObject > section .csv-data tr{border-top:0}div#\:\$p > svg > foreignObject > section .csv-data th{font-weight:var(--base-text-weight-semibold, 600);background:var(--bgColor-muted);border-top:0}div#\:\$p > svg > foreignObject > section [data-footnote-ref]:before{content:"["}div#\:\$p > svg > foreignObject > section [data-footnote-ref]:after{content:"]"}div#\:\$p > svg > foreignObject > section .footnotes{font-size:12px;color:var(--fgColor-muted);border-top:1px solid var(--borderColor-default)}div#\:\$p > svg > foreignObject > section div#\:\$p > svg > foreignObject > section section.footnotes{--marpit-root-font-size:12px}div#\:\$p > svg > foreignObject > section .footnotes ol,div#\:\$p > svg > foreignObject > section .footnotes ol ul{padding-left:var(--base-size-16)}div#\:\$p > svg > foreignObject > section .footnotes ol ul{display:inline-block;margin-top:var(--base-size-16)}div#\:\$p > svg > foreignObject > section .footnotes li{position:relative}div#\:\$p > svg > foreignObject > section .footnotes li:target:before{position:absolute;top:calc(var(--base-size-8)*-1);right:calc(var(--base-size-8)*-1);bottom:calc(var(--base-size-8)*-1);left:calc(var(--base-size-24)*-1);pointer-events:none;content:"";border:2px solid var(--borderColor-accent-emphasis);border-radius:6px}div#\:\$p > svg > foreignObject > section .footnotes li:target{color:var(--fgColor-default)}div#\:\$p > svg > foreignObject > section .footnotes .data-footnote-backref g-emoji{font-family:monospace}div#\:\$p > svg > foreignObject > section .pl-c{color:var(--color-prettylights-syntax-comment)}div#\:\$p > svg > foreignObject > section .pl-c1,div#\:\$p > svg > foreignObject > section .pl-s .pl-v{color:var(--color-prettylights-syntax-constant)}div#\:\$p > svg > foreignObject > section .pl-e,div#\:\$p > svg > foreignObject > section .pl-en{color:var(--color-prettylights-syntax-entity)}div#\:\$p > svg > foreignObject > section .pl-s .pl-s1,div#\:\$p > svg > foreignObject > section .pl-smi{color:var(--color-prettylights-syntax-storage-modifier-import)}div#\:\$p > svg > foreignObject > section .pl-ent{color:var(--color-prettylights-syntax-entity-tag)}div#\:\$p > svg > foreignObject > section .pl-k{color:var(--color-prettylights-syntax-keyword)}div#\:\$p > svg > foreignObject > section .pl-pds,div#\:\$p > svg > foreignObject > section .pl-s,div#\:\$p > svg > foreignObject > section .pl-s .pl-pse .pl-s1,div#\:\$p > svg > foreignObject > section .pl-sr,div#\:\$p > svg > foreignObject > section .pl-sr .pl-cce,div#\:\$p > svg > foreignObject > section .pl-sr .pl-sra,div#\:\$p > svg > foreignObject > section .pl-sr .pl-sre{color:var(--color-prettylights-syntax-string)}div#\:\$p > svg > foreignObject > section .pl-smw,div#\:\$p > svg > foreignObject > section .pl-v{color:var(--color-prettylights-syntax-variable)}div#\:\$p > svg > foreignObject > section .pl-bu{color:var(--color-prettylights-syntax-brackethighlighter-unmatched)}div#\:\$p > svg > foreignObject > section .pl-ii{color:var(--color-prettylights-syntax-invalid-illegal-text);background-color:var(--color-prettylights-syntax-invalid-illegal-bg)}div#\:\$p > svg > foreignObject > section .pl-c2{color:var(--color-prettylights-syntax-carriage-return-text);background-color:var(--color-prettylights-syntax-carriage-return-bg)}div#\:\$p > svg > foreignObject > section .pl-sr .pl-cce{font-weight:700;color:var(--color-prettylights-syntax-string-regexp)}div#\:\$p > svg > foreignObject > section .pl-ml{color:var(--color-prettylights-syntax-markup-list)}div#\:\$p > svg > foreignObject > section .pl-mh,div#\:\$p > svg > foreignObject > section .pl-mh .pl-en,div#\:\$p > svg > foreignObject > section .pl-ms{font-weight:700;color:var(--color-prettylights-syntax-markup-heading)}div#\:\$p > svg > foreignObject > section .pl-mi{font-style:italic;color:var(--color-prettylights-syntax-markup-italic)}div#\:\$p > svg > foreignObject > section .pl-mb{font-weight:700;color:var(--color-prettylights-syntax-markup-bold)}div#\:\$p > svg > foreignObject > section .pl-md{color:var(--color-prettylights-syntax-markup-deleted-text);background-color:var(--color-prettylights-syntax-markup-deleted-bg)}div#\:\$p > svg > foreignObject > section .pl-mi1{color:var(--color-prettylights-syntax-markup-inserted-text);background-color:var(--color-prettylights-syntax-markup-inserted-bg)}div#\:\$p > svg > foreignObject > section .pl-mc{color:var(--color-prettylights-syntax-markup-changed-text);background-color:var(--color-prettylights-syntax-markup-changed-bg)}div#\:\$p > svg > foreignObject > section .pl-mi2{color:var(--color-prettylights-syntax-markup-ignored-text);background-color:var(--color-prettylights-syntax-markup-ignored-bg)}div#\:\$p > svg > foreignObject > section .pl-mdr{font-weight:700;color:var(--color-prettylights-syntax-meta-diff-range)}div#\:\$p > svg > foreignObject > section .pl-ba{color:var(--color-prettylights-syntax-brackethighlighter-angle)}div#\:\$p > svg > foreignObject > section .pl-sg{color:var(--color-prettylights-syntax-sublimelinter-gutter-mark)}div#\:\$p > svg > foreignObject > section .pl-corl{text-decoration:underline;color:var(--color-prettylights-syntax-constant-other-reference-link)}div#\:\$p > svg > foreignObject > section [role=button]:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section [role=tabpanel][tabindex="0"]:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section a:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section button:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section summary:focus:not(:focus-visible){outline:none;box-shadow:none}div#\:\$p > svg > foreignObject > section [tabindex="0"]:focus:not(:focus-visible),div#\:\$p > svg > foreignObject > section details-dialog:focus:not(:focus-visible){outline:none}div#\:\$p > svg > foreignObject > section g-emoji{display:inline-block;min-width:1ch;font-family:Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;font-size:1em;font-style:normal!important;font-weight:var(--base-text-weight-normal, 400);line-height:1;vertical-align:-.075em}div#\:\$p > svg > foreignObject > section g-emoji img{width:1em;height:1em}div#\:\$p > svg > foreignObject > section a:has(>p,>div,>:is(pre, marp-pre),>blockquote){display:block}div#\:\$p > svg > foreignObject > section a:has(>p,>div,>:is(pre, marp-pre),>blockquote):not(:has(.snippet-clipboard-content,>:is(pre, marp-pre))){width:-moz-fit-content;width:fit-content}div#\:\$p > svg > foreignObject > section a:has(>p,>div,>:is(pre, marp-pre),>blockquote):has(.snippet-clipboard-content,>:is(pre, marp-pre)):focus-visible{outline:2px solid var(--focus-outlineColor);outline-offset:2px}div#\:\$p > svg > foreignObject > section .task-list-item{list-style-type:none}div#\:\$p > svg > foreignObject > section .task-list-item label{font-weight:var(--base-text-weight-normal, 400)}div#\:\$p > svg > foreignObject > section .task-list-item.enabled label{cursor:pointer}div#\:\$p > svg > foreignObject > section .task-list-item+.task-list-item{margin-top:var(--base-size-4)}div#\:\$p > svg > foreignObject > section .task-list-item .handle{display:none}div#\:\$p > svg > foreignObject > section .task-list-item-checkbox{margin:0 .2em .25em -1.4em;vertical-align:middle}div#\:\$p > svg > foreignObject > section ul:dir(rtl) .task-list-item-checkbox{margin:0 -1.6em .25em .2em}div#\:\$p > svg > foreignObject > section ol:dir(rtl) .task-list-item-checkbox{margin:0 -1.6em .25em .2em}div#\:\$p > svg > foreignObject > section .contains-task-list:focus-within .task-list-item-convert-container,div#\:\$p > svg > foreignObject > section .contains-task-list:hover .task-list-item-convert-container{display:block;width:auto;height:24px;overflow:visible;clip-path:none}div#\:\$p > svg > foreignObject > section ::-webkit-calendar-picker-indicator{filter:invert(50%)}div#\:\$p > svg > foreignObject > section .markdown-alert{padding:var(--base-size-8) var(--base-size-16);margin-bottom:var(--base-size-16);color:inherit;border-left:.25em solid var(--borderColor-default)}div#\:\$p > svg > foreignObject > section .markdown-alert>:first-child{margin-top:0}div#\:\$p > svg > foreignObject > section .markdown-alert>:last-child{margin-bottom:0}div#\:\$p > svg > foreignObject > section .markdown-alert .markdown-alert-title{display:flex;font-weight:var(--base-text-weight-medium, 500);align-items:center;line-height:1}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-note{border-left-color:var(--borderColor-accent-emphasis)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-note .markdown-alert-title{color:var(--fgColor-accent)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-important{border-left-color:var(--borderColor-done-emphasis)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-important .markdown-alert-title{color:var(--fgColor-done)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-warning{border-left-color:var(--borderColor-attention-emphasis)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-warning .markdown-alert-title{color:var(--fgColor-attention)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-tip{border-left-color:var(--borderColor-success-emphasis)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-tip .markdown-alert-title{color:var(--fgColor-success)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-caution{border-left-color:var(--borderColor-danger-emphasis)}div#\:\$p > svg > foreignObject > section .markdown-alert.markdown-alert-caution .markdown-alert-title{color:var(--fgColor-danger)}div#\:\$p > svg > foreignObject > section>:first-child>.heading-element:first-child{margin-top:0!important}div#\:\$p > svg > foreignObject > section .highlight :is(pre, marp-pre):has(+.zeroclipboard-container){min-height:52px}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){color:var(--h1-color);font-size:1.6em}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1),div#\:\$p > svg > foreignObject > section :is(h2, marp-h2){border-bottom:none}div#\:\$p > svg > foreignObject > section :is(h2, marp-h2){font-size:1.3em}div#\:\$p > svg > foreignObject > section :is(h3, marp-h3){font-size:1.1em}div#\:\$p > svg > foreignObject > section :is(h4, marp-h4){font-size:1.05em}div#\:\$p > svg > foreignObject > section :is(h5, marp-h5){font-size:1em}div#\:\$p > svg > foreignObject > section :is(h6, marp-h6){font-size:.9em}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1) strong,div#\:\$p > svg > foreignObject > section :is(h2, marp-h2) strong,div#\:\$p > svg > foreignObject > section :is(h3, marp-h3) strong,div#\:\$p > svg > foreignObject > section :is(h4, marp-h4) strong,div#\:\$p > svg > foreignObject > section :is(h5, marp-h5) strong,div#\:\$p > svg > foreignObject > section :is(h6, marp-h6) strong{font-weight:inherit;color:var(--heading-strong-color)}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h2, marp-h2)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h3, marp-h3)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h4, marp-h4)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h5, marp-h5)::part(auto-scaling),div#\:\$p > svg > foreignObject > section :is(h6, marp-h6)::part(auto-scaling){max-height:563px}div#\:\$p > svg > foreignObject > section hr{height:0;padding-top:.25em}div#\:\$p > svg > foreignObject > section img{background-color:transparent}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre){border:1px solid var(--borderColor-default);line-height:1.15;overflow:visible}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre)::part(auto-scaling){max-height:529px}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs){color:var(--color-prettylights-syntax-storage-modifier-import)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-doctag),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-keyword),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-meta .hljs-keyword),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-template-tag),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-template-variable),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-type),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-variable.language_){color:var(--color-prettylights-syntax-keyword)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-title),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-title.class_),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-title.class_.inherited__),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-title.function_){color:var(--color-prettylights-syntax-entity)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-attr),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-attribute),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-literal),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-meta),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-number),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-operator),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-selector-attr),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-selector-class),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-selector-id),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-variable){color:var(--color-prettylights-syntax-constant)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-meta .hljs-string),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-regexp),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-string){color:var(--color-prettylights-syntax-string)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-built_in),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-symbol){color:var(--color-prettylights-syntax-variable)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-code),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-comment),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-formula){color:var(--color-prettylights-syntax-comment)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-name),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-quote),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-selector-pseudo),div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-selector-tag){color:var(--color-prettylights-syntax-entity-tag)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-subst){color:var(--color-prettylights-syntax-storage-modifier-import)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-section){font-weight:700;color:var(--color-prettylights-syntax-markup-heading)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-bullet){color:var(--color-prettylights-syntax-markup-list)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-emphasis){font-style:italic;color:var(--color-prettylights-syntax-markup-italic)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-strong){font-weight:700;color:var(--color-prettylights-syntax-markup-bold)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-addition){color:var(--color-prettylights-syntax-markup-inserted-text);background-color:var(--color-prettylights-syntax-markup-inserted-bg)}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) :where(.hljs-deletion){color:var(--color-prettylights-syntax-markup-deleted-text);background-color:var(--color-prettylights-syntax-markup-deleted-bg)}div#\:\$p > svg > foreignObject > section footer,div#\:\$p > svg > foreignObject > section header{margin:0;position:absolute;left:30px;color:var(--header-footer-color);font-size:18px}div#\:\$p > svg > foreignObject > section header{top:21px}div#\:\$p > svg > foreignObject > section footer{bottom:21px}div#\:\$p > svg > foreignObject > section{--h1-color:light-dark(#246, #cee7ff);--header-footer-color:light-dark(hsla(0,0%,40%,.75), hsla(0,0%,60%,.75));--heading-strong-color:light-dark(#48c, #7bf);--paginate-color:light-dark(#777, #999);--base-size-4:4px;--base-size-8:8px;--base-size-16:16px;--base-size-24:24px;--base-size-40:40px;display:block;font-size:29px;height:720px;padding:78.5px;place-content:safe center center;width:1280px;flex-flow:column nowrap;align-items:stretch}div#\:\$p > svg > foreignObject > section{--marpit-root-font-size:29px}div#\:\$p > svg > foreignObject > section>:last-child,div#\:\$p > svg > foreignObject > section[data-footer]>:nth-last-child(2){margin-bottom:0}div#\:\$p > svg > foreignObject > section>:first-child,div#\:\$p > svg > foreignObject > section>header:first-child+*{margin-top:0}div#\:\$p > svg > foreignObject > section:after{position:absolute;padding:0;right:30px;bottom:21px;font-size:24px;color:var(--paginate-color)}div#\:\$p > svg > foreignObject > section:after{--marpit-root-font-size:24px}div#\:\$p > svg > foreignObject > section[data-color] :is(h1, marp-h1),div#\:\$p > svg > foreignObject > section[data-color] :is(h2, marp-h2),div#\:\$p > svg > foreignObject > section[data-color] :is(h3, marp-h3),div#\:\$p > svg > foreignObject > section[data-color] :is(h4, marp-h4),div#\:\$p > svg > foreignObject > section[data-color] :is(h5, marp-h5),div#\:\$p > svg > foreignObject > section[data-color] :is(h6, marp-h6){color:currentcolor}div#\:\$p > svg > foreignObject > :where(section){container-type:size}div#\:\$p > svg > foreignObject > section img[data-marp-twemoji]{background:transparent;height:1em;margin:0 .05em 0 .1em;vertical-align:-.1em;width:1em}div#\:\$p > svg > foreignObject > :where(section):not([\20 root]){--ink: #1d2733;--muted: #5b6776;--accent: #0b5d7a;--accent-soft: #e3f0f5;--warm: #b4532a;--paper: #fbfaf7;--code: #f1efe8;}div#\:\$p > svg > foreignObject > section{font-family:"Inter", "Segoe UI", system-ui, sans-serif;font-size:25px;line-height:1.45;padding:48px 64px 56px;background:var(--paper);color:var(--ink);justify-content:flex-start}div#\:\$p > svg > foreignObject > section{--marpit-root-font-size: 25px}div#\:\$p > svg > foreignObject > section :is(h1, marp-h1){color:var(--accent);font-size:1.55em;margin:0 0 0.45em;letter-spacing:-0.01em}div#\:\$p > svg > foreignObject > section :is(h2, marp-h2){color:var(--ink);font-size:1.15em;margin:0.2em 0 0.4em}div#\:\$p > svg > foreignObject > section strong{color:var(--accent)}div#\:\$p > svg > foreignObject > section em{color:var(--warm);font-style:normal}div#\:\$p > svg > foreignObject > section a{color:var(--accent)}div#\:\$p > svg > foreignObject > section ul, div#\:\$p > svg > foreignObject > section ol{margin-top:0.2em}div#\:\$p > svg > foreignObject > section li{margin:0.15em 0}div#\:\$p > svg > foreignObject > section code{background:var(--code);color:var(--ink);border-radius:4px;padding:0.05em 0.3em;font-size:0.88em}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre){background:var(--code);border-radius:8px;font-size:0.6em;line-height:1.4;padding:0.8em 1em}div#\:\$p > svg > foreignObject > section :is(pre, marp-pre) code{background:none;padding:0}div#\:\$p > svg > foreignObject > section table{font-size:0.66em;border-collapse:collapse}div#\:\$p > svg > foreignObject > section th{background:var(--accent-soft);color:var(--accent)}div#\:\$p > svg > foreignObject > section th, div#\:\$p > svg > foreignObject > section td{border:1px solid #d9dde3;padding:0.35em 0.6em}div#\:\$p > svg > foreignObject > section blockquote{border-left:4px solid var(--warm);color:var(--muted);margin:0.6em 0;padding:0.1em 0 0.1em 0.9em}div#\:\$p > svg > foreignObject > section header, div#\:\$p > svg > foreignObject > section footer{color:var(--muted);font-size:0.5em}div#\:\$p > svg > foreignObject > section::after{color:var(--muted);font-size:0.5em}div#\:\$p > svg > foreignObject > section::after{--marpit-root-font-size: 0.5em}div#\:\$p > svg > foreignObject > section .branch{display:inline-block;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:0.62em;background:var(--accent);color:#fff;border-radius:6px;padding:0.15em 0.6em;vertical-align:middle}div#\:\$p > svg > foreignObject > section section.branch{--marpit-root-font-size: 0.62em}div#\:\$p > svg > foreignObject > section .columns{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}div#\:\$p > svg > foreignObject > section .small{font-size:0.75em;color:var(--muted)}div#\:\$p > svg > foreignObject > section section.small{--marpit-root-font-size: 0.75em}div#\:\$p > svg > foreignObject > section.lead{background:var(--accent);color:#fff;justify-content:center}div#\:\$p > svg > foreignObject > section.lead :is(h1, marp-h1){color:#fff;font-size:2.1em}div#\:\$p > svg > foreignObject > section.lead :is(h2, marp-h2){color:#cfe6ef;font-weight:500}div#\:\$p > svg > foreignObject > section.lead header, div#\:\$p > svg > foreignObject > section.lead footer, div#\:\$p > svg > foreignObject > section.lead::after{color:#9fc6d6}div#\:\$p > svg > foreignObject > section.lead p, div#\:\$p > svg > foreignObject > section.lead li{color:#d9edf4}div#\:\$p > svg > foreignObject > section.lead strong{color:#fff}div#\:\$p > svg > foreignObject > section.lead .branch{background:#fff;color:var(--accent)}div#\:\$p > svg > foreignObject > section .rings{position:relative;width:420px;height:420px;margin:0 auto}div#\:\$p > svg > foreignObject > section .rings div{position:absolute;border-radius:50%;display:flex;justify-content:center;font-size:0.62em;font-weight:600;padding-top:10px;box-sizing:border-box}div#\:\$p > svg > foreignObject > section .rings .r4{inset:0;background:#dfe7ee;color:#3d4b5c}div#\:\$p > svg > foreignObject > section .rings .r3{inset:50px;background:#c3d7e3;color:#26405a}div#\:\$p > svg > foreignObject > section .rings .r2{inset:100px;background:#93bdd1;color:#12324a}div#\:\$p > svg > foreignObject > section .rings .r1{inset:150px;background:var(--accent);color:#fff;align-items:center;padding-top:0}div#\:\$p > svg > foreignObject > section .flow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:0.7em}div#\:\$p > svg > foreignObject > section section.flow{--marpit-root-font-size: 0.7em}div#\:\$p > svg > foreignObject > section .flow .box{border:2px solid var(--accent);border-radius:8px;padding:0.35em 0.7em;background:#fff}div#\:\$p > svg > foreignObject > section .flow .box.warn{border-color:var(--warm)}div#\:\$p > svg > foreignObject > section .flow .arrow{color:var(--muted)}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"]{columns:initial!important;display:block!important;padding:0!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"]::before, div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"]::after, div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="content"]::before, div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="content"]::after{display:none!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container]{all:initial;display:flex;flex-direction:row;height:100%;overflow:hidden;width:100%}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container][data-marpit-advanced-background-direction="vertical"]{flex-direction:column}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"][data-marpit-advanced-background-split] > div[data-marpit-advanced-background-container]{width:var(--marpit-advanced-background-split, 50%)}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"][data-marpit-advanced-background-split="right"] > div[data-marpit-advanced-background-container]{margin-left:calc(100% - var(--marpit-advanced-background-split, 50%))}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container] > figure{all:initial;background-position:center;background-repeat:no-repeat;background-size:cover;flex:auto;margin:0}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="background"] > div[data-marpit-advanced-background-container] > figure > figcaption{position:absolute;border:0;clip:rect(0, 0, 0, 0);height:1px;margin:-1px;overflow:hidden;padding:0;white-space:nowrap;width:1px}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="content"], div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="pseudo"]{background:transparent!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background="pseudo"], div#\:\$p > svg[data-marpit-svg] > foreignObject[data-marpit-advanced-background="pseudo"]{pointer-events:none!important}div#\:\$p > svg > foreignObject > section[data-marpit-advanced-background-split]{width:100%;height:100%}
+</style></head><body><div class="bespoke-marp-osc"><button data-bespoke-marp-osc="prev" tabindex="-1" title="Previous slide">Previous slide</button><span data-bespoke-marp-osc="page"></span><button data-bespoke-marp-osc="next" tabindex="-1" title="Next slide">Next slide</button><button data-bespoke-marp-osc="fullscreen" tabindex="-1" title="Toggle fullscreen (f)">Toggle fullscreen</button><button data-bespoke-marp-osc="overview" tabindex="-1" title="Toggle overview view (o)">Toggle overview view</button><button data-bespoke-marp-osc="presenter" tabindex="-1" title="Open presenter view (p)">Open presenter view</button></div><div id=":$p"><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="1" data-class="lead" data-theme="training" data-lang="pl" lang="pl" class="lead" style="--class:lead;--theme:training;--lang:pl;">
+<h1 id="czysta-architektura-w-praktyce">Czysta architektura w praktyce</h1>
+<p>Od aplikacji warstwowej do modularnego monolitu, mikroserwisów, CQRS, Event Sourcingu i sag</p>
+<p><strong>Łukasz Andrzejewski</strong></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="2" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="2" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="plan-szkolenia">Plan szkolenia</h1>
+<table>
+<thead>
+<tr>
+<th>Moduł</th>
+<th>Temat</th>
+<th>Branche</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Dlaczego architektura: warstwy, model domeny, porty i adaptery, porównanie stylów</td>
+<td><code>00</code>–<code>03</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Implementacja: zagadnienia przekrojowe, Spring jako szczegół, adaptery REST i persystencji, testy architektury</td>
+<td><code>04</code>–<code>09</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Modularyzacja: hermetyzacja, moduły Maven, JPMS, komunikacja, Spring Modulith, mikroserwis</td>
+<td><code>10</code>–<code>16</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Wzorce zaawansowane: CQRS, osobny model odczytu, Event Sourcing, saga</td>
+<td><code>17</code>–<code>21</code></td>
+</tr>
+</tbody>
+</table>
+<p>Każdy moduł kończy się ćwiczeniem na przykładzie <strong>bloga</strong>.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="3" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="jak-pracujemy-z-repozytorium">Jak pracujemy z repozytorium</h1>
+<ul>
+<li>Jedna domena przez całe szkolenie: <strong>karty i płatności</strong>, potem <strong>zamówienia</strong> i <strong>wysyłki</strong>.</li>
+<li>Każdy branch to <strong>jeden koncept</strong> zbudowany na poprzednim.<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-bash">git checkout 06-rest-adapter
+git diff 05-spring-as-detail..06-rest-adapter --<span class="hljs-built_in">stat</span>
+</code></pre>
+</li>
+<li>Na każdym branchu <code>README.md</code>: cel, problem z poprzedniego kroku, co się zmieniło, kiedy <strong>nie</strong> stosować, pytania.</li>
+<li>Decyzje w <code>docs/adr</code>, model C4 w <code>docs/c4/workspace.dsl</code>.</li>
+<li>Każda reguła ma test, który jej pilnuje: <code>./mvnw test</code>.</li>
+</ul>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>00 → 01 → … → 15 ─┬─► 16 (mikroserwis)
+                  ├─► 17 → 18 → 19 (CQRS, ES)
+                  └─► 20 → 21 (saga)
+</code></pre>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="4" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-class="lead" data-theme="training" data-lang="pl" lang="pl" class="lead" data-marpit-pagination="4" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--class:lead;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+
+<h1 id="modu%C5%82-1">Moduł 1</h1>
+<h2 id="dlaczego-architektura">Dlaczego architektura</h2>
+<p><span class="branch">00</span> <span class="branch">01</span> <span class="branch">02</span> <span class="branch">03</span></p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="5" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="5" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="podstawowe-poj%C4%99cia">Podstawowe pojęcia</h1>
+<ul>
+<li><strong>Reguły biznesowe</strong> definiują pojęcia i polityki niezbędne do działania biznesu.</li>
+<li><strong>Proces biznesowy</strong> to seria powtarzalnych kroków prowadzących do celu biznesowego.</li>
+<li><strong>Logika biznesowa</strong> to część aplikacji realizująca przyjęte reguły biznesowe.</li>
+<li><strong>Architektura</strong> określa najważniejsze komponenty, ich odpowiedzialność i wzajemne relacje. Jest szablonem rozwiązania na poziomie aplikacji lub systemu.</li>
+</ul>
+<blockquote>
+<p>Poprawna implementacja logiki biznesowej sprowadza się zwykle do dwóch rzeczy: <strong>niskiego sprzężenia</strong> (low coupling) i <strong>wysokiej spójności</strong> (high cohesion).</p>
+</blockquote>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="6" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="6" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="skutki-%C5%BAle-dobranej-architektury">Skutki źle dobranej architektury</h1>
+<ul>
+<li>Każda zmiana „rozlewa się” po wielu klasach i warstwach.</li>
+<li>Reguły biznesowe są ukryte w kontrolerach, serwisach, zapytaniach SQL i triggerach.</li>
+<li>Testy są wolne, kruche i wymagają całej infrastruktury.</li>
+<li>Wymiana technologii (bazy, kolejki, frameworka) oznacza przepisanie logiki.</li>
+<li>Zespół boi się zmian, a koszt każdej funkcji rośnie z czasem.</li>
+</ul>
+<p><strong>Wymagania niefunkcjonalne</strong> (dostępność 24/7, 1000 równoczesnych użytkowników, 200 transakcji na minutę)<br />
+również kształtują architekturę. Wrócimy do nich przy CQRS i mikroserwisach.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="7" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="7" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch00-layered-anemicspan-punkt-startowy"><span class="branch">00-layered-anemic</span> Punkt startowy</h1>
+<div class="columns">
+<div>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-meta">@Service</span> <span class="hljs-meta">@Transactional</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CardService</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-type">CardEntity</span> <span class="hljs-title function_">addTransaction</span><span class="hljs-params">(String number,
+      BigDecimal amount, String currency, String type)</span> {
+    <span class="hljs-type">var</span> <span class="hljs-variable">card</span> <span class="hljs-operator">=</span> repo.findByNumber(number).orElseThrow();
+    <span class="hljs-keyword">if</span> (!card.getCurrencyCode().equals(currency)) …
+    <span class="hljs-keyword">if</span> (type.equals(<span class="hljs-string">&quot;OUT&quot;</span>)) {
+      <span class="hljs-keyword">if</span> (card.getBalance().compareTo(amount) &lt; <span class="hljs-number">0</span>) …
+      card.setBalance(card.getBalance().subtract(amount));
+    } …
+</code></pre>
+</div>
+<div>
+<ul>
+<li><code>Controller → Service → Repository</code></li>
+<li>encja JPA = model domeny = kontrakt REST</li>
+<li>logika w <code>if</code>-ach serwisu (<strong>Transaction Script</strong>)</li>
+<li><code>ZonedDateTime.now()</code>, <code>Random</code>, <code>System.out</code> w logice</li>
+<li>test reguły wymaga <code>@SpringBootTest</code></li>
+</ul>
+<p><strong>Ćwiczenie:</strong> dodaj 2% prowizji za płatność w obcej walucie.</p>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="8" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="8" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="model-anemiczny-vs-bogaty">Model anemiczny vs bogaty</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Anemiczny</th>
+<th>Bogaty (DDD)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encje</td>
+<td>struktury danych (gettery/settery)</td>
+<td>zachowania + niezmienniki</td>
+</tr>
+<tr>
+<td>Logika</td>
+<td>serwisy (Transaction Script)</td>
+<td>agregaty, encje, Value Objects</td>
+</tr>
+<tr>
+<td>Repozytoria</td>
+<td>DAO dla każdej tabeli</td>
+<td>dla agregatów (jest ich mniej)</td>
+</tr>
+<tr>
+<td>Serwisy</td>
+<td>„grube”</td>
+<td>lekkie, orkiestrujące</td>
+</tr>
+<tr>
+<td>Testy</td>
+<td>integracyjne</td>
+<td>jednostkowe, w milisekundach</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain Driven Design</strong> zakłada, że obiekty i ich zachowania wiernie odwzorowują domenę problemu.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="9" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="9" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch01-rich-domainspan-agregat-i-value-objects"><span class="branch">01-rich-domain</span> Agregat i Value Objects</h1>
+<div class="columns">
+<div>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Card</span> {
+
+  <span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">registerTransaction</span><span class="hljs-params">(Transaction t)</span> {
+    validate(t);      <span class="hljs-comment">// waluta, ważność, saldo</span>
+    commit(t);        <span class="hljs-comment">// zmiana salda</span>
+    events.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TransactionRegistered</span>(number, t));
+  }
+
+  <span class="hljs-keyword">public</span> <span class="hljs-type">List</span>&lt;TransactionRegistered&gt; <span class="hljs-title function_">pullEvents</span><span class="hljs-params">()</span> { … }
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">Money</span><span class="hljs-params">(BigDecimal amount, Currency currency)</span> {
+  <span class="hljs-keyword">public</span> Money {
+    <span class="hljs-keyword">if</span> (amount.signum() &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> …;
+    amount = amount.setScale(…);  <span class="hljs-comment">// 10 == 10.00</span>
+  }
+}
+</code></pre>
+</div>
+<div>
+<ul>
+<li><strong>Agregat</strong> to granica spójności: stan zmienia się tylko przez metody biznesowe.</li>
+<li><strong>Value Object</strong>: niezmienny, porównywany po wartości, waliduje się sam.</li>
+<li><strong>Zdarzenie domenowe</strong>: fakt w czasie przeszłym.</li>
+<li>Czysta Java: bez Springa, JPA i bazy.</li>
+</ul>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="10" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="10" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="kontrakty-ioc-i-wstrzykiwanie-zale%C5%BCno%C5%9Bci">Kontrakty, IoC i wstrzykiwanie zależności</h1>
+<ul>
+<li><strong>Kontrakt (interfejs, API)</strong> to abstrakcja definiująca sposób interakcji współpracujących elementów i ukrywająca szczegóły implementacji.</li>
+<li><strong>Inwersja kontroli (IoC)</strong> przenosi odpowiedzialność za sterowanie wykonaniem na zewnątrz.</li>
+<li><strong>Wstrzykiwanie zależności</strong>: zależności są tworzone i podawane z zewnątrz:
+<ul>
+<li>ręcznie (konstruktor), <span class="branch">02</span></li>
+<li>wzorce, np. Factory, <span class="branch">04</span></li>
+<li>kontener (Spring, CDI). <span class="branch">05</span></li>
+</ul>
+</li>
+<li><strong>DIP</strong>: moduły wysokiego poziomu nie zależą od niskiego poziomu. Obie strony zależą od abstrakcji, a abstrakcję definiuje <strong>strona, która jej potrzebuje</strong>.</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="11" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="11" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch02-use-cases-and-portsspan-porty-i-adaptery"><span class="branch">02-use-cases-and-ports</span> Porty i adaptery</h1>
+<div class="flow">
+<div class="box">REST / CLI / main()</div><div class="arrow">→</div>
+<div class="box">port wejściowy<br /><code>AddTransactionUseCase</code></div><div class="arrow">→</div>
+<div class="box">use case<br /><code>AddTransactionService</code></div><div class="arrow">→</div>
+<div class="box">domena<br /><code>Card</code></div>
+</div>
+<div class="flow" style="margin-top:14px">
+<div class="box">use case</div><div class="arrow">→</div>
+<div class="box">porty wyjściowe<br /><code>CardRepository</code> · <code>DateTimeProvider</code> · <code>TransactionEventPublisher</code></div><div class="arrow">←</div>
+<div class="box">adaptery<br />in-memory, konsola</div>
+</div>
+<ul>
+<li>Komendy walidują się same (<code>AddTransactionCommand</code>).</li>
+<li>Model wyjściowy (<code>CardView</code>) chroni agregat przed wyciekiem.</li>
+<li>Composition root w <code>main()</code>: DI bez frameworka.</li>
+<li>Test use case'u z fake'ami portów, z kontrolą czasu.</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="12" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="12" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="architektura-warstwowa-n-tier">Architektura warstwowa (n-tier)</h1>
+<ul>
+<li>Komponenty zorganizowane w warstwy techniczne: prezentacja, logika, dane.</li>
+<li>Komunikacja w jednym kierunku, z góry w dół.</li>
+<li><strong>Logika zależy od persystencji.</strong> Zmiana bazy dotyka reguł biznesowych.</li>
+<li>Prosta, znana i wystarczająca dla aplikacji z małą ilością logiki.</li>
+</ul>
+<div class="flow" style="margin-top:20px">
+<div class="box">Presentation</div><div class="arrow">↓</div>
+<div class="box">Business</div><div class="arrow">↓</div>
+<div class="box warn">Persistence</div>
+</div>
+<p class="small">herbertograca.com/2017/08/03/layered-architecture</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="13" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="13" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="czysta-architektura">Czysta architektura</h1>
+<div class="columns">
+<div>
+<div class="rings">
+  <div class="r4">Frameworks &amp; Drivers</div>
+  <div class="r3">Interface Adapters</div>
+  <div class="r2">Use Cases</div>
+  <div class="r1">Entities</div>
+</div>
+</div>
+<div>
+<ul>
+<li>W centrum logika biznesowa, niezależna od bibliotek, frameworków i infrastruktury.</li>
+<li>Wokół niej kolejne warstwy, m.in. adaptery łączące ze światem zewnętrznym.</li>
+<li><strong>Reguła zależności</strong>: zależności w kodzie wskazują wyłącznie do środka.</li>
+<li>Przepływ sterowania może iść na zewnątrz (presenter), ale zależność dalej wskazuje do środka (DIP).</li>
+</ul>
+<p class="small">blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html</p>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="14" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="14" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch03-architectures-comparedspan-jeden-use-case-cztery-style"><span class="branch">03-architectures-compared</span> Jeden use case, cztery style</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Warstwowa</th>
+<th>Onion</th>
+<th>Heksagonalna</th>
+<th>Czysta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kierunek zależności</td>
+<td>w dół, do bazy</td>
+<td>do środka</td>
+<td>do środka</td>
+<td>do środka</td>
+</tr>
+<tr>
+<td>Interfejs repozytorium</td>
+<td>warstwa danych</td>
+<td>domain services</td>
+<td>port wyjściowy</td>
+<td>gateway w use cases</td>
+</tr>
+<tr>
+<td>Akcent</td>
+<td>podział techniczny</td>
+<td>pierścienie modelu</td>
+<td>porty i wymienne adaptery</td>
+<td>granice, presenter</td>
+</tr>
+<tr>
+<td>Reguła ArchUnit</td>
+<td><code>layeredArchitecture()</code></td>
+<td><code>onionArchitecture()</code></td>
+<td><code>noClasses()…</code></td>
+<td>warstwy-pierścienie</td>
+</tr>
+</tbody>
+</table>
+<p>Onion, heksagonalna i czysta różnią się głównie nazewnictwem. <strong>Reguła zależności jest ta sama.</strong></p>
+<p><strong>Ćwiczenie „blog”, część 1:</strong> domena i warstwa aplikacji bloga w czystej Javie.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="15" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-class="lead" data-theme="training" data-lang="pl" lang="pl" class="lead" data-marpit-pagination="15" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--class:lead;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+
+<h1 id="modu%C5%82-2">Moduł 2</h1>
+<h2 id="implementacja-czystej-architektury">Implementacja czystej architektury</h2>
+<p><span class="branch">04</span> <span class="branch">05</span> <span class="branch">06</span> <span class="branch">07</span> <span class="branch">08</span> <span class="branch">09</span></p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="16" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="16" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="programowanie-aspektowe">Programowanie aspektowe</h1>
+<ul>
+<li>Uzupełnia OOP: oddziela logikę biznesową od zadań pobocznych (transakcje, logowanie, bezpieczeństwo, pomiar czasu).</li>
+<li>Najczęściej realizowane wzorcem <strong>Proxy</strong>.</li>
+</ul>
+<div class="columns">
+<div>
+<p><span class="branch">04-cross-cutting-by-hand</span></p>
+<ul>
+<li>Decorator: osobna klasa per interfejs</li>
+<li>JDK dynamic proxy + łańcuch interceptorów</li>
+<li><code>@Atomic</code>, <code>@Timer</code> deklarują intencję bez technologii</li>
+<li>Factory + Facade = composition root</li>
+</ul>
+</div>
+<div>
+<p><span class="branch">05-spring-as-detail</span></p>
+<ul>
+<li><code>@Configuration</code> = composition root</li>
+<li>Spring AOP zamiast własnych proxy</li>
+<li><code>AspectOrder</code>: retry → timer → atomic</li>
+<li>ArchUnit: rdzeń bez <code>org.springframework..</code></li>
+</ul>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="17" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="17" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="spring-jako-szczeg%C3%B3%C5%82">Spring jako szczegół</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-meta">@Configuration</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PaymentsConfiguration</span> {
+
+  <span class="hljs-meta">@Bean</span>
+  <span class="hljs-keyword">public</span> <span class="hljs-type">AddTransactionUseCase</span> <span class="hljs-title function_">addTransactionUseCase</span><span class="hljs-params">(DateTimeProvider clock,
+      TransactionEventPublisher publisher, CardRepository cards)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AddTransactionService</span>(clock, publisher, cards);  <span class="hljs-comment">// zwykła klasa</span>
+  }
+}
+</code></pre>
+<ul>
+<li>Domena i use case'y <strong>bez adnotacji Springa</strong>. Testy z modułu 1 działają bez zmian.</li>
+<li>Adaptery mogą znać framework (<code>@Adapter</code> = <code>@Component</code>).</li>
+<li>Pułapki proxy: self-invocation, metody <code>public</code>, klasy nie-<code>final</code>.</li>
+</ul>
+<blockquote>
+<p>Kompromis: wiele zespołów świadomie akceptuje <code>@Transactional</code> w warstwie aplikacji. Ważne, żeby to była decyzja (ADR), a nie przypadek.</p>
+</blockquote>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="18" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="18" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch06-rest-adapterspan-adapter-wej%C5%9Bciowy-rest"><span class="branch">06-rest-adapter</span> Adapter wejściowy REST</h1>
+<div class="columns">
+<div>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-meta">@PostMapping(&quot;api/cards/{number}/transactions&quot;)</span>
+<span class="hljs-type">ResponseEntity</span>&lt;TransactionIdResponse&gt; <span class="hljs-title function_">addTransaction</span><span class="hljs-params">(
+    <span class="hljs-meta">@PathVariable</span> String number,
+    <span class="hljs-meta">@Validated</span> <span class="hljs-meta">@RequestBody</span> AddTransactionRequest request)</span> {
+  <span class="hljs-type">var</span> <span class="hljs-variable">id</span> <span class="hljs-operator">=</span> addTransaction.handle(mapper.toCommand(number, request));
+  <span class="hljs-keyword">return</span> ResponseEntity.created(fromRequest(id)).body(…);
+}
+</code></pre>
+</div>
+<div>
+<ul>
+<li>Osobny kontrakt REST (DTO), niezależny od domeny.</li>
+<li>Trzy poziomy walidacji: format (DTO), kompletność (komenda), reguły (domena).</li>
+<li><code>IN</code>/<code>OUT</code> (API) ↔ <code>INFLOW</code>/<code>PAYMENT</code> (domena).</li>
+<li>Wyjątki → <strong>Problem Details</strong> (RFC 9457), i18n.</li>
+<li><code>@WebMvcTest</code> + <code>@MockitoBean</code> portu.</li>
+</ul>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="19" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="19" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch07-persistence-adapterspan-persystencja-i-mapowanie"><span class="branch">07-persistence-adapter</span> Persystencja i mapowanie</h1>
+<ul>
+<li>Model JPA (<code>CardEntity</code>) oddzielony od agregatu i ukryty w adapterze (package-private).</li>
+<li>Agregat odtwarzany przez <code>Card.restore()</code> bez walidacji i bez zdarzeń.</li>
+<li>Transakcję otwiera use case (<code>@Atomic</code>), adapter jej wymaga (<code>MANDATORY</code>).</li>
+<li>Optimistic locking (<code>@Version</code>) → wyjątek <strong>portu</strong> <code>CardModifiedConcurrentlyException</code> → <code>@Retry</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Strategia mapowania</th>
+<th>Przykład w repo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>brak mapowania</td>
+<td><code>00</code> (encja wszędzie)</td>
+</tr>
+<tr>
+<td>dwukierunkowe</td>
+<td><code>JpaCardMapper</code></td>
+</tr>
+<tr>
+<td>pełne (model per operacja)</td>
+<td><code>AddTransactionRequest</code> → <code>AddTransactionCommand</code></td>
+</tr>
+<tr>
+<td>jednokierunkowe</td>
+<td><code>CardView</code> → <code>CardResponse</code></td>
+</tr>
+</tbody>
+</table>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="20" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="20" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch08-adapter-swapspan-wymienno%C5%9B%C4%87-adapter%C3%B3w"><span class="branch">08-adapter-swap</span> Wymienność adapterów</h1>
+<table>
+<thead>
+<tr>
+<th>Zmiana</th>
+<th>Port</th>
+<th>Adaptery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>druga baza</td>
+<td><code>CardRepository</code></td>
+<td>JPA (<code>@Version</code>) / JDBC (<code>FOR UPDATE</code>)</td>
+</tr>
+<tr>
+<td>zewnętrzne API</td>
+<td><code>ExchangeRateProvider</code></td>
+<td>stałe kursy / <strong>NBP</strong> (Anti-Corruption Layer)</td>
+</tr>
+<tr>
+<td>nowy kanał</td>
+<td><code>AddTransactionUseCase</code></td>
+<td>REST / import CSV</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>CardRepositoryContractTest</code>: ten sam zestaw testów dla każdej implementacji portu.</li>
+<li>Wymaganie z <code>00</code> (prowizja 2%) trafia do domeny jako usługa domenowa <code>CurrencyExchange</code>, testowana bez sieci.</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="21" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="21" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch09-testing-architecturespan-piramida-test%C3%B3w"><span class="branch">09-testing-architecture</span> Piramida testów</h1>
+<table>
+<thead>
+<tr>
+<th>Poziom</th>
+<th>Narzędzia</th>
+<th>Przykład</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>domena</td>
+<td>JUnit, AssertJ</td>
+<td><code>CardTest</code></td>
+</tr>
+<tr>
+<td>aplikacja</td>
+<td>fake'i portów</td>
+<td><code>AddTransactionServiceTest</code></td>
+</tr>
+<tr>
+<td>adapter wejściowy</td>
+<td><code>@WebMvcTest</code></td>
+<td><code>AddTransactionRestControllerTest</code></td>
+</tr>
+<tr>
+<td>adapter wyjściowy</td>
+<td><code>@DataJpaTest</code>, Testcontainers, <code>MockRestServiceServer</code></td>
+<td><code>CardRepositoryContractTest</code>, <code>NbpExchangeRateAdapterTest</code></td>
+</tr>
+<tr>
+<td>przekrojowy</td>
+<td><code>@SpringBootTest</code> + MockMvc</td>
+<td><code>PaymentsRestApiTest</code></td>
+</tr>
+<tr>
+<td>architektura</td>
+<td>ArchUnit</td>
+<td><code>ArchitectureTest</code></td>
+</tr>
+</tbody>
+</table>
+<p>Im bliżej domeny, tym więcej i szybciej.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="22" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="22" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="architektura-jako-kod-archunit">Architektura jako kod (ArchUnit)</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-meta">@ArchTest</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ArchRule</span> <span class="hljs-variable">core_is_framework_free</span> <span class="hljs-operator">=</span> noClasses()
+    .that().resideInAnyPackage(<span class="hljs-string">&quot;..domain..&quot;</span>, <span class="hljs-string">&quot;..application..&quot;</span>)
+    .should().dependOnClassesThat()
+    .resideInAnyPackage(<span class="hljs-string">&quot;org.springframework..&quot;</span>, <span class="hljs-string">&quot;jakarta.persistence..&quot;</span>);
+
+<span class="hljs-meta">@ArchTest</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ArchRule</span> <span class="hljs-variable">adapters_are_independent</span> <span class="hljs-operator">=</span> slices()
+    .matching(<span class="hljs-string">&quot;..payments.adapters.(*)..&quot;</span>).should().notDependOnEachOther();
+</code></pre>
+<ul>
+<li>Reguły warstw, <code>onionArchitecture()</code>, deterministyczna domena (bez <code>now()</code>), brak cykli, konwencje.</li>
+<li><code>FreezingArchRule</code> pozwala wprowadzać reguły w istniejącym projekcie stopniowo.</li>
+<li>jMolecules (<code>@AggregateRoot</code>, <code>@ValueObject</code>) + <code>jmolecules-archunit</code>.</li>
+</ul>
+<p><strong>Ćwiczenie „blog”, część 2:</strong> adaptery REST i JPA, testy, reguły ArchUnit.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="23" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-class="lead" data-theme="training" data-lang="pl" lang="pl" class="lead" data-marpit-pagination="23" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--class:lead;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+
+<h1 id="modu%C5%82-3">Moduł 3</h1>
+<h2 id="modularyzacja">Modularyzacja</h2>
+<p><span class="branch">10</span> <span class="branch">11</span> <span class="branch">12</span> <span class="branch">13</span> <span class="branch">14</span> <span class="branch">15</span> <span class="branch">16</span></p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="24" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="24" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="bounded-context-i-style-system%C3%B3w">Bounded Context i style systemów</h1>
+<ul>
+<li><strong>Bounded Context</strong>: aplikacja podzielona na konteksty z własnym modelem (płatności, zamówienia, wysyłki). Komunikują się przez dobrze określony interfejs.</li>
+<li><strong>Monolit</strong>: rozwijany, testowany i wdrażany jako całość. Łatwy na początku, trudny od pewnego rozmiaru.</li>
+<li><strong>Modularny monolit</strong>: niezależne moduły z odpowiedzialnością i publicznym kontraktem, wdrażane razem.</li>
+<li><strong>SOA</strong>: rozproszone usługi z kontraktami, które mogą współdzielić dane i są integrowane przez ESB.</li>
+<li><strong>Mikroserwisy</strong>: niezależne usługi, które <strong>nie współdzielą danych</strong> i komunikują się wyłącznie przez API.</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="25" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="25" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch10-second-context-naivespan-drugi-kontekst-%E2%80%9Ena-skr%C3%B3ty"><span class="branch">10-second-context-naive</span> Drugi kontekst „na skróty”</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-comment">// orders.application.PlaceOrderService (wersja naiwna)</span>
+<span class="hljs-type">var</span> <span class="hljs-variable">card</span> <span class="hljs-operator">=</span> cardRepository.findByNumber(command.cardNumber()).orElseThrow();
+<span class="hljs-type">var</span> <span class="hljs-variable">transaction</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Transaction</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TransactionId</span>(), clock.now(), command.total(), PAYMENT);
+card.registerTransaction(transaction);       <span class="hljs-comment">// zamówienia same obciążają kartę!</span>
+cardRepository.save(card);
+</code></pre>
+<ul>
+<li><code>orders</code> zna wnętrze <code>payments</code>: <code>CardRepository</code>, <code>Card</code>, <code>Transaction</code>.</li>
+<li>Ominięty use case: brak przeliczania walut, zdarzeń i retry.</li>
+<li><code>payments</code> pokazuje zamówienia karty, więc powstaje <strong>cykl</strong>.</li>
+<li>Wspólny model (<code>Money</code>, <code>CardNumber</code>) skleja konteksty.</li>
+</ul>
+<p><code>ContextBoundariesTest</code> jest celowo wyłączony. Usuń <code>@Disabled</code>.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="26" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="26" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch11-language-encapsulationspan-hermetyzacja-%C5%9Brodkami-j%C4%99zyka"><span class="branch">11-language-encapsulation</span> Hermetyzacja środkami języka</h1>
+<div class="columns">
+<div>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">PaymentsApi</span> {
+  <span class="hljs-type">PaymentResult</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(PaymentRequest request)</span>;
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">sealed</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">PaymentResult</span> {
+  <span class="hljs-keyword">record</span> <span class="hljs-title class_">Completed</span><span class="hljs-params">(String paymentId)</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentResult</span> {}
+  <span class="hljs-keyword">record</span> <span class="hljs-title class_">Rejected</span><span class="hljs-params">(String reason)</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentResult</span> {}
+}
+
+<span class="hljs-keyword">switch</span> (paymentsApi.pay(request)) {
+  <span class="hljs-keyword">case</span> Completed c -&gt; order.markPaid(c.paymentId());
+  <span class="hljs-keyword">case</span> Rejected r -&gt; order.reject(r.reason());
+}
+</code></pre>
+</div>
+<div>
+<ul>
+<li>Wąski publiczny kontrakt: pakiet <code>payments.api</code>.</li>
+<li>Implementacja package-private (<code>PaymentsApiAdapter</code>).</li>
+<li><code>sealed</code> wymusza obsługę wszystkich przypadków.</li>
+<li>Własne VO zamówień: <code>Price</code>, <code>CardReference</code>.</li>
+<li>Jedna transakcja na moduł.</li>
+<li><strong>Ograniczenie</strong>: Java nie ukryje podpakietów. Granicę pilnuje tylko test.</li>
+</ul>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="27" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch12-maven-modulesspan-i-span-classbranch13-jpmsspan"><span class="branch">12-maven-modules</span> i <span class="branch">13-jpms</span></h1>
+<div class="columns">
+<div>
+<p><strong>Moduły Maven</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>common
+payments-api   ← kontrakt
+payments       → common, payments-api
+orders         → common, payments-api
+app            → payments, orders
+</code></pre>
+<p>Import <code>payments.domain</code> w <code>orders</code>: <em>package does not exist</em>.</p>
+</div>
+<div>
+<p><strong>JPMS</strong></p>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java">open <span class="hljs-keyword">module</span> pl.fullstackdeveloper.payments {
+  <span class="hljs-keyword">requires</span> pl.fullstackdeveloper.payments.api;
+  <span class="hljs-keyword">requires</span> spring.context;
+  <span class="hljs-comment">// brak exports: wnętrze niewidoczne</span>
+}
+</code></pre>
+<p><code>exports</code> daje dostęp w kompilacji, <code>opens</code> daje refleksję. Spring Boot uruchamia się z classpath, więc JPMS działa głównie w kompilacji.</p>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="28" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch14-module-communicationspan-komunikacja-modu%C5%82%C3%B3w"><span class="branch">14-module-communication</span> Komunikacja modułów</h1>
+<ul>
+<li>Zamówienia definiują <strong>własny port</strong> <code>Payments</code> i własny wynik <code>PaymentOutcome</code>.</li>
+<li>Kontrakt płatności zna tylko adapter: <strong>Anti-Corruption Layer</strong> (<code>PaymentsTranslator</code>).</li>
+<li>Ten sam use case działa z dwoma adapterami:
+<ul>
+<li>synchronicznym: <code>PaymentsApi.pay()</code>,</li>
+<li>asynchronicznym: <code>PaymentRequested</code> → <code>PaymentProcessed</code>, korelacja przez <code>reference</code>.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Programowanie przez zdarzenia</strong> (wzorzec Observer) rozluźnia powiązania: komponenty komunikują się, choć niewiele o sobie wiedzą.</p>
+<blockquote>
+<p>Słaby punkt: zdarzenie w pamięci ginie przy awarii między commitem a publikacją.</p>
+</blockquote>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="29" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch15-spring-modulithspan-modularny-monolit-ze-spring-modulith"><span class="branch">15-spring-modulith</span> Modularny monolit ze Spring Modulith</h1>
+<div class="columns">
+<div>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-meta">@ApplicationModule(allowedDependencies =
+    {&quot;payments::api&quot;, &quot;common&quot;})</span>
+<span class="hljs-keyword">package</span> pl.fullstackdeveloper.orders;
+
+<span class="hljs-meta">@ApplicationModuleListener</span>   <span class="hljs-comment">// async + nowa tx</span>
+<span class="hljs-type">void</span> <span class="hljs-title function_">on</span><span class="hljs-params">(PaymentProcessed event)</span> { … }
+
+ApplicationModules.of(Application.class).verify();
+</code></pre>
+</div>
+<div>
+<ul>
+<li>Moduły to pakiety najwyższego poziomu, weryfikowane testem.</li>
+<li><strong>Event Publication Registry</strong>: zdarzenie zapisane w tej samej transakcji co zmiana (<strong>transactional outbox</strong>) i ponawiane.</li>
+<li><code>@ApplicationModuleTest</code> + <code>Scenario</code>: test modułu w izolacji.</li>
+<li><code>Documenter</code>: diagramy C4 z kodu.</li>
+</ul>
+</div>
+</div>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Maven</th>
+<th>JPMS</th>
+<th>Modulith</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kiedy</td>
+<td>kompilacja</td>
+<td>kompilacja</td>
+<td>testy</td>
+</tr>
+<tr>
+<td>koszt</td>
+<td>pom-y</td>
+<td><code>module-info</code>, refleksja</td>
+<td>niski</td>
+</tr>
+</tbody>
+</table>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="30" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="30" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="mikroserwisy-zalety-i-wyzwania">Mikroserwisy: zalety i wyzwania</h1>
+<div class="columns">
+<div>
+<p><strong>Zalety</strong></p>
+<ul>
+<li>modularność i reużywalność</li>
+<li>skalowalność i optymalne zużycie zasobów</li>
+<li>niezawodność i wysoka dostępność</li>
+<li>łatwość rozwoju pojedynczej usługi</li>
+</ul>
+</div>
+<div>
+<p><strong>Wyzwania</strong></p>
+<ul>
+<li>złożoność na poziomie makro: infrastruktura, utrzymanie, synchronizacja stanu i procesów</li>
+<li>koszty: ludzie, sprzęt, utrzymanie</li>
+<li>sieć: wydajność i awarie</li>
+<li>kontrakty i ich wersjonowanie</li>
+</ul>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="31" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="31" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch16-extract-microservicespan-wydzielenie-us%C5%82ugi"><span class="branch">16-extract-microservice</span> Wydzielenie usługi</h1>
+<div class="flow">
+<div class="box">orders-service :8082</div><div class="arrow">⇄ Kafka (outbox) ⇄</div>
+<div class="box">payments-service :8081</div>
+</div>
+<ul>
+<li>W zamówieniach zmieniają się <strong>tylko adaptery</strong>. Domena i use case'y bez zmian (<code>git diff</code> pokazuje tylko przeniesienia).</li>
+<li>Sync: <code>HttpPaymentsAdapter</code> + <code>@Retryable</code> + <code>@ConcurrencyLimit</code> (Spring Framework 7).</li>
+<li>Async: eksternalizacja zdarzeń Modulith do Kafki oraz inbox.</li>
+<li>Kontrakt <code>payments-api</code> + pliki <code>contracts/*.json</code> sprawdzane po obu stronach.</li>
+<li>Kontrakt sieciowy musi być prosty: płaski JSON zamiast hierarchii <code>sealed</code>.</li>
+</ul>
+<p><strong>Ćwiczenie „blog”, część 3:</strong> kontekst notifications jako moduł Modulith.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="32" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="32" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="model-c4">Model C4</h1>
+<ul>
+<li>Opisuje architekturę i ułatwia dzielenie się wiedzą o niej.</li>
+<li>Cztery poziomy szczegółowości:
+<ol>
+<li><strong>Context</strong>: system, użytkownicy, systemy zewnętrzne (NBP)</li>
+<li><strong>Container</strong>: aplikacje i magazyny danych (<code>payments-service</code>, <code>orders-service</code>, Kafka, bazy)</li>
+<li><strong>Component</strong>: moduły (<code>payments</code>, <code>orders</code>, <code>payments::api</code>)</li>
+<li><strong>Code</strong>: klasy (zwykle generowane, nie rysowane)</li>
+</ol>
+</li>
+<li>W repo: <code>docs/c4/workspace.dsl</code> (Structurizr DSL) aktualizowany w <code>02</code>, <code>10</code>, <code>14</code>, <code>15</code>, <code>16</code>, oraz <code>docs/modulith</code> generowane przez <code>Documenter</code>.</li>
+<li>Decyzje zapisujemy w <code>docs/adr</code>.</li>
+</ul>
+<p class="small">c4model.com · docker run -p 8080:8080 -v $(pwd)/docs/c4:/usr/local/structurizr structurizr/lite</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="33" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-class="lead" data-theme="training" data-lang="pl" lang="pl" class="lead" data-marpit-pagination="33" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--class:lead;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+
+<h1 id="modu%C5%82-4">Moduł 4</h1>
+<h2 id="wzorce-zaawansowane">Wzorce zaawansowane</h2>
+<p><span class="branch">17</span> <span class="branch">18</span> <span class="branch">19</span> <span class="branch">20</span> <span class="branch">21</span></p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="34" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="34" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="cqs-i-cqrs">CQS i CQRS</h1>
+<ul>
+<li><strong>Command Query Separation</strong> (B. Meyer, 1986): metoda albo zmienia stan i nic nie zwraca (command), albo zwraca dane i nie zmienia stanu (query).</li>
+<li><strong>CQRS</strong> (G. Young, U. Dahan): ta sama zasada na poziomie klas, komponentów i systemu.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Rola</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Command</td>
+<td>intencja użytkownika, np. <code>AddTransactionCommand</code></td>
+</tr>
+<tr>
+<td>Command Bus / Handler</td>
+<td>routing, walidacja, zmiana agregatu, zapis</td>
+</tr>
+<tr>
+<td>Event</td>
+<td>zmiana, która zaszła, np. <code>TransactionAdded</code></td>
+</tr>
+<tr>
+<td>Event Handler</td>
+<td>aktualizacja bazy odczytu</td>
+</tr>
+<tr>
+<td>Read Database</td>
+<td>model zoptymalizowany pod odczyt</td>
+</tr>
+</tbody>
+</table>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="35" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch17-cqrs-lightspan-dwa-modele-jedna-baza"><span class="branch">17-cqrs-light</span> Dwa modele, jedna baza</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">AddTransactionUseCase</span>
+        <span class="hljs-keyword">extends</span> <span class="hljs-title class_">CommandHandler</span>&lt;AddTransactionCommand, TransactionId&gt; { }
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">GetCardSummaryQuery</span><span class="hljs-params">(String cardNumber)</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Query</span>&lt;Optional&lt;CardSummary&gt;&gt; { }
+
+<span class="hljs-comment">// kontroler</span>
+bus.send(<span class="hljs-keyword">new</span> <span class="hljs-title class_">AddTransactionCommand</span>(…));
+bus.ask(<span class="hljs-keyword">new</span> <span class="hljs-title class_">GetCardSummaryQuery</span>(number));
+</code></pre>
+<ul>
+<li>Strona zapisu: agregat, niezmienniki, <code>CardRepository</code> <strong>bez</strong> <code>findAll</code>.</li>
+<li>Strona odczytu: projekcje SQL (<code>JdbcClient</code>), liczenie po stronie bazy, bez ładowania agregatu.</li>
+<li>Nowy widok (<code>/transactions</code>) bez zmian w modelu zapisu.</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="36" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="36" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch18-cqrs-read-storespan-osobny-magazyn-odczytu"><span class="branch">18-cqrs-read-store</span> Osobny magazyn odczytu</h1>
+<div class="flow">
+<div class="box">komenda</div><div class="arrow">→</div><div class="box">agregat</div><div class="arrow">→</div>
+<div class="box">baza zapisu + outbox</div><div class="arrow">→ po commicie →</div>
+<div class="box">projekcja</div><div class="arrow">→</div><div class="box">MongoDB</div><div class="arrow">←</div><div class="box">zapytanie</div>
+</div>
+<ul>
+<li>Dokument <code>card_summaries</code>: saldo policzone z góry, transakcje osadzone.</li>
+<li>Projekcja <strong>idempotentna</strong> (deduplikacja po <code>transactionId</code>) i odporna na kolejność (upsert).</li>
+<li><strong>Spójność ostateczna</strong>: odczyt tuż po zapisie może być nieaktualny.</li>
+<li>Model odczytu można odbudować w każdej chwili (<code>/api/admin/projections/cards/rebuild</code>).</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="37" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="37" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="event-sourcing">Event Sourcing</h1>
+<ul>
+<li>W CQRS zdarzenia synchronizują bazę zapisu i odczytu.</li>
+<li><strong>Event Sourcing</strong> idzie dalej: stan aplikacji odtwarzamy ze zdarzeń w magazynie zwanym <strong>Event Store</strong>.</li>
+<li>Zdarzenia są źródłem prawdy, a stan jest pochodną.</li>
+</ul>
+<div class="columns">
+<div>
+<p><strong>Zyski</strong></p>
+<ul>
+<li>pełny audyt i historia</li>
+<li>stan na dowolny moment</li>
+<li>nowe widoki z całej historii (replay)</li>
+</ul>
+</div>
+<div>
+<p><strong>Koszty</strong></p>
+<ul>
+<li>wersjonowanie zdarzeń (upcasting)</li>
+<li>brak „poprawiania” historii</li>
+<li>obowiązkowe modele odczytu</li>
+<li>RODO a niezmienny log</li>
+</ul>
+</div>
+</div>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="38" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="38" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch19-event-sourcingspan-agregat-ze-zdarze%C5%84"><span class="branch">19-event-sourcing</span> Agregat ze zdarzeń</h1>
+<div class="columns">
+<div>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-type">void</span> <span class="hljs-title function_">registerTransaction</span><span class="hljs-params">(Transaction t)</span> {
+  validate(t);
+  record(<span class="hljs-keyword">new</span> <span class="hljs-title class_">TransactionRegistered</span>(number, t));
+}
+
+<span class="hljs-keyword">private</span> <span class="hljs-type">void</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(CardEvent event)</span> {
+  <span class="hljs-keyword">switch</span> (event) {
+    <span class="hljs-keyword">case</span> CardIssued i -&gt; { …; balance = zero(currency); }
+    <span class="hljs-keyword">case</span> TransactionRegistered r -&gt; { balance = …; }
+  }
+  version++;
+}
+</code></pre>
+</div>
+<div>
+<ul>
+<li><code>card_events</code>: append-only, PK <code>(stream_id, version)</code> = optimistic concurrency.</li>
+<li>Migawki co N zdarzeń (<code>card_snapshots</code>).</li>
+<li>Jawny format zapisu <code>CardIssued.v1</code>.</li>
+<li>Port <code>CardRepository</code> i use case'y <strong>bez zmian</strong>.</li>
+<li>Testy given (zdarzenia) / when (komenda) / then (zdarzenia).</li>
+</ul>
+</div>
+</div>
+<p><strong>Ćwiczenie „blog”, część 4:</strong> CQRS i projekcje dla bloga.</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="39" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="39" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="wzorzec-saga">Wzorzec Saga</h1>
+<ul>
+<li>Proces biznesowy przechodzący przez wiele modułów lub usług z osobnymi transakcjami.</li>
+<li>Zamiast transakcji rozproszonej: <strong>sekwencja lokalnych transakcji</strong> + <strong>kompensacje</strong>.</li>
+<li>Kompensacja jest <strong>semantyczna</strong> (zwrot środków), a nie techniczny rollback.</li>
+<li>Kompensujemy ukończone kroki w <strong>odwrotnej kolejności</strong>.</li>
+<li>Wymagania praktyczne:
+<ul>
+<li>idempotentne kroki (at-least-once),</li>
+<li>trwały stan procesu (recovery po restarcie),</li>
+<li>timeouty i ponawianie,</li>
+<li>plan na nieudaną kompensację.</li>
+</ul>
+</li>
+</ul>
+<p class="small">blog.couchbase.com/saga-pattern-implement-business-transactions-using-microservices-part-2</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="40" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="40" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch20-saga-orchestrationspan-orkiestracja"><span class="branch">20-saga-orchestration</span> Orkiestracja</h1>
+<pre is="marp-pre" data-auto-scaling="downscale-only"><code>CHARGE_PAYMENT ──ok──► SCHEDULE_SHIPMENT ──ok──► CONFIRMED / COMPLETED
+     │ rejected                 │ rejected
+     ▼                          ▼
+  REJECTED              REFUND_PAYMENT ──► CANCELLED / COMPENSATED
+</code></pre>
+<ul>
+<li><code>OrderSagaOrchestrator</code> wysyła polecenia i reaguje na odpowiedzi.</li>
+<li><code>OrderSaga</code>: trwały stan, stos ukończonych kroków, liczba prób.</li>
+<li>Stan + polecenie w jednej transakcji (outbox).</li>
+<li>Idempotentność: <code>ProcessedMessages</code> w płatnościach, ignorowanie odpowiedzi, na które saga nie czeka.</li>
+<li><code>SagaTimeoutScheduler</code>: ponowienie, a po limicie kompensacja.</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="41" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="41" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="span-classbranch21-saga-choreographyspan-choreografia"><span class="branch">21-saga-choreography</span> Choreografia</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Orkiestracja</th>
+<th>Choreografia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>proces</td>
+<td>jedna klasa</td>
+<td>rozproszony po listenerach</td>
+</tr>
+<tr>
+<td>stan</td>
+<td>jawny (<code>order_sagas</code>)</td>
+<td>niejawny (statusy + lokalne kopie)</td>
+</tr>
+<tr>
+<td>komunikaty</td>
+<td>polecenia + odpowiedzi</td>
+<td>fakty</td>
+</tr>
+<tr>
+<td>zależności</td>
+<td>orkiestrator zna uczestników</td>
+<td>wspólny moduł <code>events</code></td>
+</tr>
+<tr>
+<td>timeouty, monitoring</td>
+<td>wbudowane</td>
+<td>trzeba dobudować</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Bez modułu <code>events</code> powstałby cykl <code>orders → payments → shipping → orders</code>.</li>
+<li>Kolejność zdarzeń nie jest gwarantowana: ponawianie nieudanych publikacji.</li>
+</ul>
+<p><strong>Ćwiczenie końcowe:</strong> rozproszona saga provisioningu infrastruktury (5 kroków, 2 serwisy, AC1–AC6).</p>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="42" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="42" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="podsumowanie">Podsumowanie</h1>
+<ol>
+<li>Zacznij od <strong>modelu domeny</strong> i reguły zależności. Framework to szczegół.</li>
+<li>Porty i adaptery dają <strong>wymienność</strong> i <strong>szybkie testy</strong>.</li>
+<li>Granice pilnuj <strong>automatycznie</strong> (ArchUnit, Modulith, build).</li>
+<li><strong>Modularny monolit</strong> to dobry punkt docelowy. Mikroserwis to wymiana adapterów, a nie przepisanie domeny.</li>
+<li>CQRS, Event Sourcing i saga rozwiązują konkretne problemy, ale <strong>mają swoją cenę</strong>.</li>
+<li>Każda decyzja to kompromis. Zapisuj ją w <strong>ADR</strong>.</li>
+</ol>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="43" data-paginate="true" data-header="Czysta architektura w praktyce" data-footer="Łukasz Andrzejewski · szkolenie Clean Architecture" data-theme="training" data-lang="pl" lang="pl" data-marpit-pagination="43" style="--paginate:true;--header:Czysta architektura w praktyce;--footer:Łukasz Andrzejewski · szkolenie Clean Architecture;--theme:training;--lang:pl;" data-marpit-pagination-total="43">
+<header>Czysta architektura w praktyce</header>
+<h1 id="literatura">Literatura</h1>
+<ul>
+<li>R. C. Martin, <em>Clean Architecture</em></li>
+<li>T. Hombergs, <em>Get Your Hands Dirty on Clean Architecture</em>: reflectoring.io/book</li>
+<li>O. Drotbohm, <em>Spring Modulith deep dive</em>: github.com/odrotbohm/spring-modulith-deep-dive</li>
+<li><em>Modular Architecture with Spring</em>: leanpub.com/maws</li>
+<li>N. Ford, M. Richards et al., <em>Software Architecture: The Hard Parts</em></li>
+<li>M. Richards, N. Ford, <em>Fundamentals of Software Architecture</em></li>
+<li>Proxy i AOP: refactoring.guru/design-patterns/proxy, docs.spring.io/spring-framework/reference/core/aop.html</li>
+<li>Model C4: c4model.com</li>
+</ul>
+<footer>Łukasz Andrzejewski · szkolenie Clean Architecture</footer>
+</section>
+<script>!function(){"use strict";const t={h1:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"1"},style:"display: block; font-size: 2em; margin-block-start: 0.67em; margin-block-end: 0.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h2:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"2"},style:"display: block; font-size: 1.5em; margin-block-start: 0.83em; margin-block-end: 0.83em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h3:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"3"},style:"display: block; font-size: 1.17em; margin-block-start: 1em; margin-block-end: 1em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h4:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"4"},style:"display: block; margin-block-start: 1.33em; margin-block-end: 1.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h5:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"5"},style:"display: block; font-size: 0.83em; margin-block-start: 1.67em; margin-block-end: 1.67em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},h6:{proto:()=>HTMLHeadingElement,attrs:{role:"heading","aria-level":"6"},style:"display: block; font-size: 0.67em; margin-block-start: 2.33em; margin-block-end: 2.33em; margin-inline-start: 0px; margin-inline-end: 0px; font-weight: bold;"},span:{proto:()=>HTMLSpanElement},pre:{proto:()=>HTMLElement,style:"display: block; font-family: monospace; white-space: pre; margin: 1em 0; --marp-auto-scaling-white-space: pre;"}},e="data-marp-auto-scaling-wrapper",i="data-marp-auto-scaling-svg",n="data-marp-auto-scaling-container";class s extends HTMLElement{container;containerSize;containerObserver;svg;svgComputedStyle;svgPreserveAspectRatio="xMinYMid meet";wrapper;wrapperSize;wrapperObserver;constructor(){super();const t=t=>([e])=>{const{width:i,height:n}=e.contentRect;this[t]={width:i,height:n},this.updateSVGRect()};this.attachShadow({mode:"open"}),this.containerObserver=new ResizeObserver(t("containerSize")),this.wrapperObserver=new ResizeObserver((...e)=>{t("wrapperSize")(...e),this.flushSvgDisplay()})}static get observedAttributes(){return["data-downscale-only"]}connectedCallback(){this.shadowRoot.innerHTML=`\n<style>\n  svg[${i}] { display: block; width: 100%; height: auto; vertical-align: top; }\n  span[${n}] { display: table; white-space: var(--marp-auto-scaling-white-space, nowrap); width: max-content; }\n</style>\n<div ${e}>\n  <svg part="svg" ${i}>\n    <foreignObject><span ${n}><slot></slot></span></foreignObject>\n  </svg>\n</div>\n    `.split(/\n\s*/).join(""),this.wrapper=this.shadowRoot.querySelector(`div[${e}]`)??void 0;const t=this.svg;this.svg=this.wrapper?.querySelector(`svg[${i}]`)??void 0,this.svg!==t&&(this.svgComputedStyle=this.svg?window.getComputedStyle(this.svg):void 0),this.container=this.svg?.querySelector(`span[${n}]`)??void 0,this.observe()}disconnectedCallback(){this.svg=void 0,this.svgComputedStyle=void 0,this.wrapper=void 0,this.container=void 0,this.observe()}attributeChangedCallback(){this.observe()}flushSvgDisplay(){const{svg:t}=this;t&&(t.style.display="inline",requestAnimationFrame(()=>{t.style.display=""}))}observe(){this.containerObserver.disconnect(),this.wrapperObserver.disconnect(),this.wrapper&&this.wrapperObserver.observe(this.wrapper),this.container&&this.containerObserver.observe(this.container),this.svgComputedStyle&&this.observeSVGStyle(this.svgComputedStyle)}observeSVGStyle(t){const e=()=>{const i=(()=>{const e=t.getPropertyValue("--preserve-aspect-ratio");if(e)return e.trim();return`x${(({textAlign:t,direction:e})=>{if(t.endsWith("left"))return"Min";if(t.endsWith("right"))return"Max";if("start"===t||"end"===t){let i="rtl"===e;return"end"===t&&(i=!i),i?"Max":"Min"}return"Mid"})(t)}YMid meet`})();i!==this.svgPreserveAspectRatio&&(this.svgPreserveAspectRatio=i,this.updateSVGRect()),t===this.svgComputedStyle&&requestAnimationFrame(e)};e()}updateSVGRect(){let t=Math.ceil(this.containerSize?.width??0);const e=Math.ceil(this.containerSize?.height??0);void 0!==this.dataset.downscaleOnly&&(t=Math.max(t,this.wrapperSize?.width??0));const i=this.svg?.querySelector(":scope > foreignObject");if(i?.setAttribute("width",`${t}`),i?.setAttribute("height",`${e}`),this.svg&&(this.svg.setAttribute("viewBox",`0 0 ${t} ${e}`),this.svg.setAttribute("preserveAspectRatio",this.svgPreserveAspectRatio),this.svg.style.height=t<=0||e<=0?"0":""),this.container){const t=this.svgPreserveAspectRatio.toLowerCase();this.container.style.marginLeft=t.startsWith("xmid")||t.startsWith("xmax")?"auto":"0",this.container.style.marginRight=t.startsWith("xmi")?"auto":"0"}}}const r=(t,{attrs:e={},style:i})=>class extends t{constructor(...t){super(...t);for(const[t,i]of Object.entries(e))this.hasAttribute(t)||this.setAttribute(t,i);this._shadow()}static get observedAttributes(){return["data-auto-scaling"]}connectedCallback(){this._update()}attributeChangedCallback(){this._update()}_shadow(){if(!this.shadowRoot)try{this.attachShadow({mode:"open"})}catch(t){if(!(t instanceof Error&&"NotSupportedError"===t.name))throw t}return this.shadowRoot}_update(){const t=this._shadow();if(t){const e=i?`<style>:host { ${i} }</style>`:"";let n="<slot></slot>";const{autoScaling:s}=this.dataset;if(void 0!==s){n=`<marp-auto-scaling exportparts="svg:auto-scaling" ${"downscale-only"===s?"data-downscale-only":""}>${n}</marp-auto-scaling>`}t.innerHTML=e+n}}};let o;const a=()=>o??(o=!!document.createElement("div",{is:"marp-auto-scaling"}).outerHTML.startsWith("<div is"),o),l=Symbol();let c;const d="marpitSVGPolyfill:setZoomFactor,",h=Symbol(),g=Symbol();const p=()=>{const t="Apple Computer, Inc."===navigator.vendor,e=t?[v]:[],i={then:e=>(t?(async()=>{if(void 0===c){const t=document.createElement("canvas");t.width=10,t.height=10;const e=t.getContext("2d"),i=new Image(10,10),n=new Promise(t=>{i.addEventListener("load",()=>t())});i.crossOrigin="anonymous",i.src="data:image/svg+xml;charset=utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%201%201%22%3E%3CforeignObject%20width%3D%221%22%20height%3D%221%22%20requiredExtensions%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%3E%3Cdiv%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxhtml%22%20style%3D%22width%3A%201px%3B%20height%3A%201px%3B%20background%3A%20red%3B%20position%3A%20relative%22%3E%3C%2Fdiv%3E%3C%2FforeignObject%3E%3C%2Fsvg%3E",await n,e.drawImage(i,0,0),c=e.getImageData(5,5,1,1).data[3]<128}return c})().then(t=>{null==e||e(t?[v]:[])}):null==e||e([]),i)};return Object.assign(e,i)};let m,u;function v(t){const e="object"==typeof t&&t.target||document,i="object"==typeof t?t.zoom:t;window[g]||(Object.defineProperty(window,g,{configurable:!0,value:!0}),document.body.style.zoom=1.0001,document.body.offsetHeight,document.body.style.zoom=1,window.addEventListener("message",({data:t,origin:e})=>{if(e===window.origin)try{if(t&&"string"==typeof t&&t.startsWith(d)){const[,e]=t.split(","),i=Number.parseFloat(e);Number.isNaN(i)||(u=i)}}catch(t){console.error(t)}}));let n=!1;Array.from(e.querySelectorAll("svg[data-marpit-svg]"),t=>{var e,s,r,o;t.style.transform||(t.style.transform="translateZ(0)");const a=i||u||t.currentScale||1;m!==a&&(m=a,n=a);const l=t.getBoundingClientRect(),{length:c}=t.children;for(let i=0;i<c;i+=1){const n=t.children[i];if(n.getScreenCTM){const t=n.getScreenCTM();if(t){const i=null!==(s=null===(e=n.x)||void 0===e?void 0:e.baseVal.value)&&void 0!==s?s:0,c=null!==(o=null===(r=n.y)||void 0===r?void 0:r.baseVal.value)&&void 0!==o?o:0,d=n.children.length;for(let e=0;e<d;e+=1){const s=n.children[e];if("SECTION"===s.tagName){const{style:e}=s;e.transformOrigin||(e.transformOrigin=`${-i}px ${-c}px`),e.transform=`scale(${a}) matrix(${t.a}, ${t.b}, ${t.c}, ${t.d}, ${t.e-l.left}, ${t.f-l.top}) translateZ(0.0001px)`;break}}}}}}),!1!==n&&Array.from(e.querySelectorAll("iframe"),({contentWindow:t})=>{null==t||t.postMessage(`${d}${n}`,"null"===window.origin?"*":window.origin)})}function w({once:t=!1,target:e=document}={}){const i=function(t=document){if(t[h])return t[h];let e=!0;const i=()=>{e=!1,delete t[h]};Object.defineProperty(t,h,{configurable:!0,value:i});let n=[],s=!1;(async()=>{try{n=await p()}finally{s=!0}})();const r=()=>{for(const e of n)e({target:t});s&&0===n.length||e&&window.requestAnimationFrame(r)};return r(),i}(e);return t?(i(),()=>{}):i}m=1,u=void 0;const b=Symbol(),y=(e=document)=>{if("undefined"==typeof window)throw new Error("Marp Core's browser script is valid only in browser context.");if(((e=document)=>{const i=window[l];i||customElements.define("marp-auto-scaling",s);for(const n of Object.keys(t)){const s=`marp-${n}`,o=t[n].proto();a()&&o!==HTMLElement?i||customElements.define(s,r(o,{style:t[n].style}),{extends:n}):(i||customElements.define(s,r(HTMLElement,t[n])),e.querySelectorAll(`${n}[is="${s}"]`).forEach(t=>{t.outerHTML=t.outerHTML.replace(new RegExp(`^<${n}`,"i"),`<${s}`).replace(new RegExp(`</${n}>$`,"i"),`</${s}>`)}))}window[l]=!0})(e),e[b])return e[b];const i=w({target:e}),n=()=>{i(),delete e[b]},o=Object.assign(n,{cleanup:n,update:()=>y(e)});return Object.defineProperty(e,b,{configurable:!0,value:o}),o},f=document.currentScript;y(f?f.getRootNode():document)}();
+</script></foreignObject></svg></div><script>/*!! License: https://unpkg.com/@marp-team/marp-cli@4.5.1/lib/bespoke.js.LICENSE.txt */
+!function(){"use strict";function e(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var t,n,r=(n||(n=1,t={from:function(e,t){var n,r=1===(e.parent||e).nodeType?e.parent||e:document.querySelector(e.parent||e),o=[].filter.call("string"==typeof e.slides?r.querySelectorAll(e.slides):e.slides||r.children,function(e){return"SCRIPT"!==e.nodeName}),i={},a=function(e,t){return(t=t||{}).index=o.indexOf(e),t.slide=e,t},s=function(e,t){i[e]=(i[e]||[]).filter(function(e){return e!==t})},l=function(e,t){return(i[e]||[]).reduce(function(e,n){return e&&!1!==n(t)},!0)},c=function(e,t){o[e]&&(n&&l("deactivate",a(n,t)),n=o[e],l("activate",a(n,t)))},d=function(e,t){var r=o.indexOf(n)+e;l(e>0?"next":"prev",a(n,t))&&c(r,t)},u={off:s,on:function(e,t){return(i[e]||(i[e]=[])).push(t),s.bind(null,e,t)},fire:l,slide:function(e,t){if(!arguments.length)return o.indexOf(n);l("slide",a(o[e],t))&&c(e,t)},next:d.bind(null,1),prev:d.bind(null,-1),parent:r,slides:o,destroy:function(e){l("destroy",a(n,e)),i={}}};return(t||[]).forEach(function(e){e(u)}),n||c(0),u}}),t),o=e(r);const i=document.body,a=(...e)=>history.replaceState(...e),s="",l="presenter",c="next",d="overview",u=["",l,d,c],f="bespoke-marp-",m=`data-${f}`,g=(e,{protocol:t,host:n,pathname:r,hash:o}=location)=>{const i=e.toString();return`${t}//${n}${r}${i?"?":""}${i}${o}`},p=()=>i.dataset.bespokeView,v=e=>new URLSearchParams(location.search).get(e),h=(e,t={})=>{const n={location,setter:a,...t},r=new URLSearchParams(n.location.search);for(const t of Object.keys(e)){const n=e[t];"string"==typeof n?r.set(t,n):r.delete(t)}try{n.setter({...window.history.state??{}},"",g(r,n.location))}catch(e){console.error(e)}},w=(()=>{const e="bespoke-marp";try{return localStorage.setItem(e,e),localStorage.removeItem(e),!0}catch{return!1}})(),y=e=>{try{return localStorage.getItem(e)}catch{return null}},b=(e,t)=>{try{return localStorage.setItem(e,t),!0}catch{return!1}},k=e=>{try{return localStorage.removeItem(e),!0}catch{return!1}},x=(e,t)=>{const n="aria-hidden";t?e.setAttribute(n,"true"):e.removeAttribute(n)},E=e=>{e.parent.classList.add(`${f}parent`),e.slides.forEach(e=>e.classList.add(`${f}slide`)),e.on("activate",t=>{const n=`${f}active`,r=t.slide,o=r.classList,i=!o.contains(n);if(e.slides.forEach(e=>{e.classList.remove(n),x(e,!0)}),o.add(n),x(r,!1),i){const e=`${n}-ready`;o.add(e),document.body.clientHeight,o.remove(e)}})},$=e=>{let t=0,n=0;Object.defineProperty(e,"fragments",{enumerable:!0,value:e.slides.map(e=>[null,...e.querySelectorAll("[data-marpit-fragment]")])});const r=r=>void 0!==e.fragments[t][n+r],o=(r,o)=>{t=r,n=o,e.fragments.forEach((e,t)=>{e.forEach((e,n)=>{if(null==e)return;const i=t<r||t===r&&n<=o;e.setAttribute(`${m}fragment`,(i?"":"in")+"active");const a=`${m}current-fragment`;t===r&&n===o?e.setAttribute(a,"current"):e.removeAttribute(a)})}),e.fragmentIndex=o;const i={slide:e.slides[r],index:r,fragments:e.fragments[r],fragmentIndex:o};e.fire("fragment",i)};e.on("next",({fragment:i=!0})=>{if(i){if(r(1))return o(t,n+1),!1;const i=t+1;e.fragments[i]&&o(i,0)}else{const r=e.fragments[t].length;if(n+1<r)return o(t,r-1),!1;const i=e.fragments[t+1];i&&o(t+1,i.length-1)}}),e.on("prev",({fragment:i=!0})=>{if(r(-1)&&i)return o(t,n-1),!1;const a=t-1;e.fragments[a]&&o(a,e.fragments[a].length-1)}),e.on("slide",({index:t,fragment:n})=>{let r=0;if(void 0!==n){const o=e.fragments[t];if(o){const{length:e}=o;r=-1===n?e-1:Math.min(Math.max(n,0),e-1)}}o(t,r)}),o(0,0)},L=document,S=()=>!(!L.fullscreenEnabled&&!L.webkitFullscreenEnabled),P=()=>!(!L.fullscreenElement&&!L.webkitFullscreenElement),_=e=>{e.fullscreen=()=>{S()&&(async()=>{P()?(L.exitFullscreen||L.webkitExitFullscreen)?.call(L):((e=L.body)=>{(e.requestFullscreen||e.webkitRequestFullscreen)?.call(e)})()})()},document.addEventListener("keydown",t=>{"f"!==t.key&&"F11"!==t.key||t.altKey||t.ctrlKey||t.metaKey||!S()||(e.fullscreen(),t.preventDefault())})},O=`${f}inactive`,T=(e=2e3)=>({parent:t,fire:n})=>{const r=t.classList,o=e=>n(`marp-${e?"":"in"}active`);let i;const a=()=>{i&&clearTimeout(i),i=setTimeout(()=>{r.add(O),o()},e),r.contains(O)&&(r.remove(O),o(!0))};for(const e of["mousedown","mousemove","touchend"])document.addEventListener(e,a);setTimeout(a,0)},I=["AUDIO","BUTTON","INPUT","SELECT","TEXTAREA","VIDEO"],M=e=>{e.parent.addEventListener("keydown",e=>{if(!e.target)return;const t=e.target;(I.includes(t.nodeName)||"true"===t.contentEditable)&&e.stopPropagation()})},A=e=>{window.addEventListener("load",()=>{for(const t of e.slides){const e=t.querySelector("marp-auto-scaling, [data-auto-scaling], [data-marp-fitting]");t.setAttribute(`${m}load`,e?"":"hideable")}})},C=({interval:e=250}={})=>t=>{document.addEventListener("keydown",e=>{if(" "===e.key&&e.shiftKey)t.prev();else if("ArrowLeft"===e.key||"ArrowUp"===e.key||"PageUp"===e.key)t.prev({fragment:!e.shiftKey});else if(" "!==e.key||e.shiftKey)if("ArrowRight"===e.key||"ArrowDown"===e.key||"PageDown"===e.key)t.next({fragment:!e.shiftKey});else if("End"===e.key)t.slide(t.slides.length-1,{fragment:-1});else{if("Home"!==e.key)return;t.slide(0)}else t.next();e.preventDefault()});let n,r,o=0;t.parent.addEventListener("wheel",i=>{let a=!1;const s=(e,t)=>{e&&(a=a||((e,t)=>((e,t)=>{const n="X"===t?"Width":"Height";return e[`client${n}`]<e[`scroll${n}`]})(e,t)&&((e,t)=>{const{overflow:n}=e,r=e[`overflow${t}`];return"auto"===n||"scroll"===n||"auto"===r||"scroll"===r})(getComputedStyle(e),t))(e,t)),e?.parentElement&&s(e.parentElement,t)};if(0!==i.deltaX&&s(i.target,"X"),0!==i.deltaY&&s(i.target,"Y"),a)return;i.preventDefault();const l=Math.sqrt(i.deltaX**2+i.deltaY**2);if(void 0!==i.wheelDelta){if(void 0===i.webkitForce&&Math.abs(i.wheelDelta)<40)return;if(i.deltaMode===i.DOM_DELTA_PIXEL&&l<4)return}else if(i.deltaMode===i.DOM_DELTA_PIXEL&&l<12)return;r&&clearTimeout(r),r=setTimeout(()=>{n=0},e);const c=Date.now()-o<e,d=l<=n;if(n=l,c||d)return;let u;(i.deltaX>0||i.deltaY>0)&&(u="next"),(i.deltaX<0||i.deltaY<0)&&(u="prev"),u&&(t[u](),o=Date.now())})},D=(e=`.${f}osc`)=>{const t=document.querySelector(e);if(!t)return()=>{};const n=(e,n)=>{t.querySelectorAll(`[${m}osc=${JSON.stringify(e)}]`).forEach(n)};if(S()||n("fullscreen",e=>e.style.display="none"),!w){const e=(e,t)=>{e.disabled=!0,e.title=`${t} is disabled due to restricted localStorage.`};n("presenter",t=>e(t,"Presenter view")),n("overview",t=>e(t,"Overview view"))}return e=>{t.addEventListener("click",t=>{if(t.target instanceof HTMLElement){const{bespokeMarpOsc:n}=t.target.dataset;n&&t.target.blur();const r={fragment:!t.shiftKey};"next"===n?e.next(r):"prev"===n?e.prev(r):"fullscreen"===n?e?.fullscreen():"presenter"===n?e.openPresenterView():"overview"===n&&e.toggleOverviewView()}}),e.parent.appendChild(t),e.on("activate",({index:t})=>{n("page",n=>n.textContent=`Page ${t+1} of ${e.slides.length}`)}),e.on("fragment",({index:t,fragments:r,fragmentIndex:o})=>{n("prev",e=>e.disabled=0===t&&0===o),n("next",n=>n.disabled=t===e.slides.length-1&&o===r.length-1)}),e.on("marp-active",()=>x(t,!1)),e.on("marp-inactive",()=>x(t,!0)),S()&&(e=>{for(const t of["","webkit"])L.addEventListener(t+"fullscreenchange",e)})(()=>n("fullscreen",e=>e.classList.toggle("exit",S()&&P())))}},N=e=>{if(e.syncKey&&"string"==typeof e.syncKey)return!0;throw new Error("The current instance of Bespoke.js is incompatible with Marp bespoke sync plugin.")},B=(e={})=>{const t=e.key||window.history.state?.marpBespokeSyncKey||Math.random().toString(36).slice(2),n=`bespoke-marp-sync-${t}`;var r;r={marpBespokeSyncKey:t},h({},{setter:(e,...t)=>a({...e,...r},...t)});const o=()=>{const e=y(n);return e?JSON.parse(e):Object.create(null)},i=e=>{const t=o(),r={...t,...e(t)};return b(n,JSON.stringify(r)),r},s=()=>{window.removeEventListener("pageshow",s),i(e=>({reference:(e.reference||0)+1}))};return e=>{s(),Object.defineProperty(e,"syncKey",{value:t,enumerable:!0});let r=!0;setTimeout(()=>{e.on("fragment",e=>{r&&i(()=>({index:e.index,fragmentIndex:e.fragmentIndex}))})},0),window.addEventListener("storage",t=>{if(t.key===n&&t.oldValue&&t.newValue){const n=JSON.parse(t.oldValue),o=JSON.parse(t.newValue);if(n.index!==o.index||n.fragmentIndex!==o.fragmentIndex)try{r=!1,e.slide(o.index,{fragment:o.fragmentIndex,forSync:!0})}finally{r=!0}}});const a=()=>{const{reference:e}=o();void 0===e||e<=1?k(n):i(()=>({reference:e-1}))};window.addEventListener("pagehide",e=>{e.persisted&&window.addEventListener("pageshow",s),a()}),e.on("destroy",a)}},K=e=>{w&&document.addEventListener("keydown",t=>{("o"!==t.key||t.altKey||t.ctrlKey||t.metaKey)&&"Escape"!==t.key||(t.preventDefault(),e())})};let q=null;const V=({closeOnSelect:e=!0}={})=>t=>{N(t);const n=n=>{const r=(()=>{if(!q||!q.isConnected){q=document.createElement("div"),q.className=`${f}overview`,q.inert=!0;const n=document.createElement("iframe");n.src=(()=>{const n=new URLSearchParams(location.search);return n.set("view","overview"),n.set("sync",t.syncKey),e&&n.set("closeOnSelect","1"),g(n)})(),q.append(n),document.body.append(q)}return q})(),o=n??!r.dataset.open;setTimeout(()=>{if(r.dataset.open=o?"1":"",r.inert=!o,t.skipTransition=o,o){const e=r.querySelector("iframe");try{e?.contentWindow?.focus()}catch{e?.focus()}}else window.focus()},0)};Object.defineProperties(t,{toggleOverviewView:{enumerable:!0,value:n}}),window.addEventListener("message",e=>{e.origin===window.origin&&"closeOverview"===e.data&&n(!1)}),K(n)},j=e=>{const{title:t}=document;document.title="[Overview]"+(t?` - ${t}`:"");const n=!!v("closeOnSelect"),r=()=>{window.parent.postMessage("closeOverview","null"===window.origin?"*":window.origin)};if(e.slides.forEach((t,o)=>{t.tabIndex=0;const i=()=>{e.slide(o,{fragment:-1}),n&&r()};t.addEventListener("click",i),t.addEventListener("keydown",e=>{"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),i())})}),window.addEventListener("keydown",t=>{const n=e.slide(),r=t=>{const r=t=>{const n=e.slides[t].getBoundingClientRect();return[Math.round((n.left+n.right)/2),Math.round((n.top+n.bottom)/2)]};let o=null,i=n;do{const e=r(i);if(o){if(Math.abs(e[0]-o[0])<2)return i}else o=e;i+=t}while(i>=0&&i<e.slides.length);return n};if("ArrowLeft"===t.key)e.slide(Math.max(n-1,0),{fragment:-1});else if("ArrowRight"===t.key)e.slide(Math.min(n+1,e.slides.length-1),{fragment:-1});else if("ArrowUp"===t.key)e.slide(r(-1),{fragment:-1});else if("ArrowDown"===t.key)e.slide(r(1),{fragment:-1});else if("End"===t.key)e.slide(e.slides.length-1,{fragment:-1});else{if("Home"!==t.key)return;e.slide(0,{fragment:-1})}t.preventDefault();const o=e.slide();e.slides[o]?.focus?.(),e.slides[o]?.scrollIntoView?.({behavior:"smooth",block:"nearest"})}),e.on("slide",({index:t})=>{e.slides[t]?.scrollIntoView?.({behavior:"smooth",block:"nearest"})}),window.parent!==window){K(r);const e=document.createElement("header");e.className=`${f}overview-header`;const t=document.createElement("button");t.className=`${f}overview-close`,t.type="button",t.title="Close overview",t.textContent=t.title,t.addEventListener("click",r),e.append(t),document.body.prepend(e)}},F=()=>{const e=p();return{[s]:V(),[l]:V({closeOnSelect:!1}),[d]:j}[e]},U=e=>{window.addEventListener("message",t=>{if(t.origin!==window.origin)return;const[n,r]=t.data.split(":");if("navigate"===n){const[t,n]=r.split(",");let o=Number.parseInt(t,10),i=Number.parseInt(n,10)+1;i>=e.fragments[o].length&&(o+=1,i=0),e.slide(o,{fragment:i})}})};var R,X,H,W,J,Y,z,G={exports:{}},Q=(R||(R=1,G.exports=(X=["area","base","br","col","command","embed","hr","img","input","keygen","link","meta","param","source","track","wbr"],H=function(e){return String(e).replace(/[&<>"']/g,function(e){return"&"+W[e]+";"})},W={"&":"amp","<":"lt",">":"gt",'"':"quot","'":"apos"},J="dangerouslySetInnerHTML",Y={className:"class",htmlFor:"for"},z={},function(e,t){var n=[],r="";t=t||{};for(var o=arguments.length;o-- >2;)n.push(arguments[o]);if("function"==typeof e)return t.children=n.reverse(),e(t);if(e){if(r+="<"+e,t)for(var i in t)!1!==t[i]&&null!=t[i]&&i!==J&&(r+=" "+(Y[i]?Y[i]:H(i))+'="'+H(t[i])+'"');r+=">"}if(-1===X.indexOf(e)){if(t[J])r+=t[J].__html;else for(;n.length;){var a=n.pop();if(a)if(a.pop)for(var s=a.length;s--;)n.push(a[s]);else r+=!0===z[a]?a:H(a)}r+=e?"</"+e+">":""}return z[r]=!0,r})),G.exports),Z=e(Q);const ee=({children:e})=>Z(null,null,...e),te=`${f}presenter-`,ne={container:`${te}container`,dragbar:`${te}dragbar-container`,next:`${te}next`,nextContainer:`${te}next-container`,noteContainer:`${te}note-container`,noteWrapper:`${te}note-wrapper`,noteButtons:`${te}note-buttons`,infoContainer:`${te}info-container`,infoPageArea:`${te}info-page-area`,infoPage:`${te}info-page`,infoPagePrev:`${te}info-page-prev`,infoPageNext:`${te}info-page-next`,noteButtonsBigger:`${te}note-bigger`,noteButtonsSmaller:`${te}note-smaller`,infoTime:`${te}info-time`,infoTimer:`${te}info-timer`},re=e=>{const{title:t}=document;document.title="[Presenter view]"+(t?` - ${t}`:"");const n={},r=e=>(n[e]=n[e]||document.querySelector(`.${e}`),n[e]);document.body.appendChild((e=>{const t=document.createElement("div");return t.className=ne.container,t.appendChild(e),t.insertAdjacentHTML("beforeend",Z(ee,null,Z("div",{class:ne.nextContainer},Z("iframe",{class:ne.next,src:"?view=next"})),Z("div",{class:ne.dragbar}),Z("div",{class:ne.noteContainer},Z("div",{class:ne.noteWrapper}),Z("div",{class:ne.noteButtons},Z("button",{class:ne.noteButtonsSmaller,tabindex:"-1",title:"Smaller notes font size"},"Smaller notes font size"),Z("button",{class:ne.noteButtonsBigger,tabindex:"-1",title:"Bigger notes font size"},"Bigger notes font size"))),Z("div",{class:ne.infoContainer},Z("div",{class:ne.infoPageArea},Z("button",{class:ne.infoPagePrev,tabindex:"-1",title:"Previous"},"Previous"),Z("button",{class:ne.infoPage}),Z("button",{class:ne.infoPageNext,tabindex:"-1",title:"Next"},"Next")),Z("time",{class:ne.infoTime,title:"Current time"}),Z("time",{class:ne.infoTimer,title:"Timer"})))),t})(e.parent)),(e=>{let t=!1;r(ne.dragbar).addEventListener("mousedown",()=>{t=!0,r(ne.dragbar).classList.add("active")}),window.addEventListener("mouseup",()=>{t=!1,r(ne.dragbar).classList.remove("active")}),window.addEventListener("mousemove",e=>{if(!t)return;const n=e.clientX/document.documentElement.clientWidth*100;r(ne.container).style.setProperty("--bespoke-marp-presenter-split-ratio",`${Math.max(0,Math.min(100,n))}%`)}),r(ne.nextContainer).addEventListener("click",()=>e.next());const n=r(ne.next),o=(i=n,(e,t)=>i.contentWindow?.postMessage(`navigate:${e},${t}`,"null"===window.origin?"*":window.origin));var i;n.addEventListener("load",()=>{r(ne.nextContainer).classList.add("active"),o(e.slide(),e.fragmentIndex),e.on("fragment",({index:e,fragmentIndex:t})=>o(e,t))});const a=document.querySelectorAll(".bespoke-marp-note");a.forEach(e=>{e.addEventListener("keydown",e=>e.stopPropagation()),r(ne.noteWrapper).appendChild(e)}),e.on("activate",()=>a.forEach(t=>t.classList.toggle("active",t.dataset.index==e.slide())));let s=0;const l=e=>{s=Math.max(-5,s+e),r(ne.noteContainer).style.setProperty("--bespoke-marp-note-font-scale",(1.2**s).toFixed(4))},c=()=>l(1),d=()=>l(-1),u=r(ne.noteButtonsBigger),f=r(ne.noteButtonsSmaller);u.addEventListener("click",()=>{u.blur(),c()}),f.addEventListener("click",()=>{f.blur(),d()}),document.addEventListener("keydown",e=>{"+"===e.key&&c(),"-"===e.key&&d()},!0);const m=r(ne.infoPage);e.on("activate",({index:t})=>{m.textContent=`${t+1} / ${e.slides.length}`}),m.addEventListener("click",()=>{m.blur(),e.toggleOverviewView()});const g=r(ne.infoPagePrev),p=r(ne.infoPageNext);g.addEventListener("click",t=>{g.blur(),e.prev({fragment:!t.shiftKey})}),p.addEventListener("click",t=>{p.blur(),e.next({fragment:!t.shiftKey})}),e.on("fragment",({index:t,fragments:n,fragmentIndex:r})=>{g.disabled=0===t&&0===r,p.disabled=t===e.slides.length-1&&r===n.length-1});let v=new Date;const h=()=>{const e=new Date,t=e=>`${Math.floor(e)}`.padStart(2,"0"),n=e.getTime()-v.getTime(),o=t(n/1e3%60),i=t(n/1e3/60%60),a=t(n/36e5%24);r(ne.infoTime).textContent=e.toLocaleTimeString(),r(ne.infoTimer).textContent=`${a}:${i}:${o}`};h(),setInterval(h,250),r(ne.infoTimer).addEventListener("click",()=>{v=new Date})})(e)},oe=e=>{N(e),Object.defineProperties(e,{openPresenterView:{enumerable:!0,value:ie},presenterUrl:{enumerable:!0,get:ae}}),w&&document.addEventListener("keydown",t=>{"p"!==t.key||t.altKey||t.ctrlKey||t.metaKey||(t.preventDefault(),e.openPresenterView())})};function ie(){const{max:e,floor:t}=Math,n=e(t(.85*window.innerWidth),640),r=e(t(.85*window.innerHeight),360);return window.open(this.presenterUrl,te+this.syncKey,`width=${n},height=${r},menubar=no,toolbar=no`)}function ae(){const e=new URLSearchParams(location.search);return e.set("view","presenter"),e.set("sync",this.syncKey),g(e)}const se=e=>{const t=p();return t===c&&e.appendChild(document.createElement("span")),{[s]:oe,[l]:re,[c]:U}[t]},le=e=>{e.on("activate",t=>{document.querySelectorAll(".bespoke-progress-parent > .bespoke-progress-bar").forEach(n=>{n.style.flexBasis=100*t.index/(e.slides.length-1)+"%"})})},ce=e=>{const t=Number.parseInt(e,10);return Number.isNaN(t)?null:t},de=(e={})=>{const t={history:!0,...e};return e=>{let n=!0;const r=e=>{const t=n;try{return n=!0,e()}finally{n=t}},o=(t={fragment:!0})=>{let n=t.fragment?ce(v("f")||""):null;((t,n)=>{const{min:r,max:o}=Math,{fragments:i,slides:a}=e,s=o(0,r(t,a.length-1)),l=o(0,r(n||0,i[s].length-1));s===e.slide()&&l===e.fragmentIndex||e.slide(s,{fragment:l})})((()=>{if(location.hash){const[t]=location.hash.slice(1).split(":~:");if(/^\d+$/.test(t))return(ce(t)??1)-1;const r=document.getElementById(t)||document.querySelector(`a[name="${CSS.escape(t)}"]`);if(r){const{length:t}=e.slides;for(let o=0;o<t;o+=1)if(e.slides[o].contains(r)){const t=e.fragments?.[o],i=r.closest("[data-marpit-fragment]");if(t&&i){const e=t.indexOf(i);e>=0&&(n=e)}return o}}}return 0})(),n)};e.on("fragment",({index:e,fragmentIndex:r})=>{n||h({f:0===r||r.toString()},{location:{...location,hash:`#${e+1}`},setter:(...e)=>t.history?history.pushState(...e):history.replaceState(...e)})}),setTimeout(()=>{o(),window.addEventListener("hashchange",()=>r(()=>{o({fragment:!1}),h({f:void 0})})),window.addEventListener("popstate",()=>{n||r(()=>o())}),n=!1},0)}},{PI:ue,abs:fe,sqrt:me,atan2:ge}=Math,pe={passive:!0},ve=({slope:e=-.7,swipeThreshold:t=30}={})=>n=>{let r;const o=n.parent,i=e=>{const t=o.getBoundingClientRect();return{x:e.pageX-(t.left+t.right)/2,y:e.pageY-(t.top+t.bottom)/2}};o.addEventListener("touchstart",({touches:e})=>{r=1===e.length?i(e[0]):void 0},pe),o.addEventListener("touchmove",e=>{if(r)if(1===e.touches.length){e.preventDefault();const t=i(e.touches[0]),n=t.x-r.x,o=t.y-r.y;r.delta=me(fe(n)**2+fe(o)**2),r.radian=ge(n,o)}else r=void 0}),o.addEventListener("touchend",o=>{if(r){if(r.delta&&r.delta>=t&&r.radian){const t=(r.radian-e+ue)%(2*ue)-ue;n[t<0?"next":"prev"](),o.stopPropagation()}r=void 0}},pe)},he=new Map;he.clear(),he.set("none",{backward:{both:void 0,incoming:void 0,outgoing:void 0},forward:{both:void 0,incoming:void 0,outgoing:void 0}});const we={both:"",outgoing:"outgoing-",incoming:"incoming-"},ye={forward:"",backward:"-backward"},be=e=>`--marp-bespoke-transition-animation-${e}`,ke=e=>`--marp-transition-${e}`,xe=be("name"),Ee=be("duration"),$e=e=>new Promise(t=>{const n={},r=document.createElement("div"),o=e=>{r.remove(),t(e)};r.addEventListener("animationstart",()=>o(n)),Object.assign(r.style,{animationName:e,animationDuration:"1s",animationFillMode:"both",animationPlayState:"paused",position:"absolute",pointerEvents:"none"}),document.body.appendChild(r);const i=getComputedStyle(r).getPropertyValue(ke("duration"));i&&Number.parseFloat(i)>=0&&(n.defaultDuration=i),((e,t)=>{requestAnimationFrame(()=>{e.style.animationPlayState="running",requestAnimationFrame(()=>t(void 0))})})(r,o)}),Le=async e=>he.has(e)?he.get(e):(e=>{const t={},n=[];for(const[r,o]of Object.entries(we))for(const[i,a]of Object.entries(ye)){const s=`marp-${o}transition${a}-${e}`;n.push($e(s).then(e=>{t[i]=t[i]||{},t[i][r]=e?{...e,name:s}:void 0}))}return Promise.all(n).then(()=>t)})(e).then(t=>(he.set(e,t),t)),Se=e=>Object.values(e).flatMap(Object.values).every(e=>!e),Pe=(e,{type:t,backward:n})=>{const r=e[n?"backward":"forward"],o=(()=>{const e=r[t],n=e=>({[xe]:e.name});if(e)return n(e);if(r.both){const e=n(r.both);return"incoming"===t&&(e[be("direction")]="reverse"),e}})();return!o&&n?Pe(e,{type:t,backward:!1}):o||{[xe]:"__bespoke_marp_transition_no_animation__"}},_e=e=>{if(e)try{const t=JSON.parse(e);if((e=>{if("object"!=typeof e)return!1;const t=e;return"string"==typeof t.name&&(void 0===t.duration||"string"==typeof t.duration)})(t))return t}catch{}},Oe="_tSId",Te="_tA",Ie="bespoke-marp-transition-warming-up",Me=window.matchMedia("(prefers-reduced-motion: reduce)"),Ae="__bespoke_marp_transition_reduced_outgoing__",Ce="__bespoke_marp_transition_reduced_incoming__",De={forward:{both:void 0,incoming:{name:Ce},outgoing:{name:Ae}},backward:{both:void 0,incoming:{name:Ce},outgoing:{name:Ae}}},Ne=e=>{if(!document.startViewTransition)return;const t=t=>(void 0!==t&&(e._tD=t),e._tD);let n;t(!1),((...e)=>{CSS.registerProperty({name:ke("duration"),syntax:"<time>",inherits:!0,initialValue:"-1s"});const t=[...new Set(e).values()];return Promise.all(t.map(e=>Le(e))).then()})(...Array.from(document.querySelectorAll("section[data-transition], section[data-transition-back]")).flatMap(e=>[e.dataset.transition,e.dataset.transitionBack].flatMap(e=>{const t=_e(e);return[t?.name,t?.builtinFallback?`__builtin__${t.name}`:void 0]}).filter(e=>!!e))).then(()=>{document.querySelectorAll("style").forEach(e=>{e.innerHTML=e.innerHTML.replace(/--marp-transition-duration:[^;}]*[;}]/g,e=>e.slice(0,-1)+"!important"+e.slice(-1))})});const r=(n,{back:r,cond:o})=>i=>{const a=t();if(a)return!!i[Te]||!("object"!=typeof a||(a.skipTransition(),!i.forSync));if(e.skipTransition)return!0;if(!o(i))return!0;const s=e.slides[e.slide()],l=()=>i.back??r,c="data-transition"+(l()?"-back":""),d=s.querySelector(`section[${c}]`);if(!d)return!0;const u=_e(d.getAttribute(c)??void 0);return!u||((async(e,{builtinFallback:t=!0}={})=>{let n=await Le(e);if(Se(n)){if(!t)return;return n=await Le(`__builtin__${e}`),Se(n)?void 0:n}return n})(u.name,{builtinFallback:u.builtinFallback}).then(e=>{if(!e){t(!0);try{n(i)}finally{t(!1)}return}let r=e;Me.matches&&(console.warn("Use a constant animation to transition because preferring reduced motion by viewer has detected."),r=De);const o=document.getElementById(Oe);o&&o.remove();const a=document.createElement("style");a.id=Oe,document.head.appendChild(a),((e,t)=>{const n=[`:root{${ke("direction")}:${t.backward?-1:1};}`,":root:has(.bespoke-marp-inactive){cursor:none;}"],r=t=>{const n=e[t].both?.defaultDuration||e[t].outgoing?.defaultDuration||e[t].incoming?.defaultDuration;return"forward"===t?n:n||r("forward")},o=t.duration||r(t.backward?"backward":"forward");void 0!==o&&n.push(`::view-transition-group(*){${Ee}:${o};}`);const i=e=>Object.entries(e).map(([e,t])=>`${e}:${t};`).join("");return n.push(`::view-transition-old(root){${i(Pe(e,{...t,type:"outgoing"}))}}`,`::view-transition-new(root){${i(Pe(e,{...t,type:"incoming"}))}}`),n})(r,{backward:l(),duration:u.duration}).forEach(e=>a.sheet?.insertRule(e));const s=document.documentElement.classList;s.add(Ie);let c=!1;const d=()=>{c||(n(i),c=!0,s.remove(Ie))},f=()=>{t(!1),a.remove(),s.remove(Ie)};try{t(!0);const e=document.startViewTransition(d);t(e),e.finished.finally(f)}catch(e){console.error(e),d(),f()}}),!1)};e.on("prev",r(t=>e.prev({...t,[Te]:!0}),{back:!0,cond:e=>e.index>0&&!((e.fragment??1)&&n.fragmentIndex>0)})),e.on("next",r(t=>e.next({...t,[Te]:!0}),{cond:t=>t.index+1<e.slides.length&&!(n.fragmentIndex+1<n.fragments.length)})),setTimeout(()=>{e.on("slide",r(t=>e.slide(t.index,{...t,[Te]:!0}),{cond:t=>{const n=e.slide();return t.index!==n&&(t.back=t.index<n,!0)}}))},0),e.on("fragment",e=>{n=e})};let Be;const Ke=()=>(void 0===Be&&(Be="wakeLock"in navigator&&navigator.wakeLock),Be),qe=async()=>{const e=Ke();if(e)try{return await e.request("screen")}catch(e){console.warn(e)}return null},Ve=async()=>{if(!Ke())return;let e;const t=()=>{e&&"visible"===document.visibilityState&&qe()};for(const e of["visibilitychange","fullscreenchange"])document.addEventListener(e,t);return e=await qe(),e};((e=document.getElementById(":$p"))=>{(()=>{const e=v("view");i.dataset.bespokeView=u.some(t=>t&&t===e)?e:""})();const t=(e=>{const t=v(e);return h({[e]:void 0}),t})("sync")||void 0;o.from(e,((...e)=>{const t=u.findIndex(e=>p()===e);return e.map(([e,n])=>e[t]&&n).filter(e=>e)})([[1,1,1,0],B({key:t})],[[1,1,0,1],se(e)],[[1,1,0,0],M],[[1,1,1,1],E],[[1,0,0,0],T()],[[1,1,1,1],A],[[1,1,1,1],de({history:!1})],[[1,1,0,0],C()],[[1,1,1,0],_],[[1,0,0,0],le],[[1,1,0,0],ve()],[[1,0,0,0],D()],[[1,1,1,0],F()],[[1,0,0,0],Ne],[[1,1,1,1],$],[[1,1,1,0],Ve]))})()}();</script></body></html>

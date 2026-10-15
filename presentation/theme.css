@@ -1,0 +1,217 @@
+/* @theme training */
+@import 'default';
+
+:root {
+  --ink: #1d2733;
+  --muted: #5b6776;
+  --accent: #0b5d7a;
+  --accent-soft: #e3f0f5;
+  --warm: #b4532a;
+  --paper: #fbfaf7;
+  --code: #f1efe8;
+}
+
+section {
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-size: 25px;
+  line-height: 1.45;
+  padding: 48px 64px 56px;
+  background: var(--paper);
+  color: var(--ink);
+  justify-content: flex-start;
+}
+
+h1 {
+  color: var(--accent);
+  font-size: 1.55em;
+  margin: 0 0 0.45em;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  color: var(--ink);
+  font-size: 1.15em;
+  margin: 0.2em 0 0.4em;
+}
+
+strong {
+  color: var(--accent);
+}
+
+em {
+  color: var(--warm);
+  font-style: normal;
+}
+
+a {
+  color: var(--accent);
+}
+
+ul, ol {
+  margin-top: 0.2em;
+}
+
+li {
+  margin: 0.15em 0;
+}
+
+code {
+  background: var(--code);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: 0.05em 0.3em;
+  font-size: 0.88em;
+}
+
+pre {
+  background: var(--code);
+  border-radius: 8px;
+  font-size: 0.6em;
+  line-height: 1.4;
+  padding: 0.8em 1em;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+table {
+  font-size: 0.66em;
+  border-collapse: collapse;
+}
+
+th {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+th, td {
+  border: 1px solid #d9dde3;
+  padding: 0.35em 0.6em;
+}
+
+blockquote {
+  border-left: 4px solid var(--warm);
+  color: var(--muted);
+  margin: 0.6em 0;
+  padding: 0.1em 0 0.1em 0.9em;
+}
+
+header, footer {
+  color: var(--muted);
+  font-size: 0.5em;
+}
+
+section::after {
+  color: var(--muted);
+  font-size: 0.5em;
+}
+
+/* plakietka z nazwą brancha */
+.branch {
+  display: inline-block;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.62em;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.15em 0.6em;
+  vertical-align: middle;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.small {
+  font-size: 0.75em;
+  color: var(--muted);
+}
+
+/* slajdy tytułowe sekcji */
+section.lead {
+  background: var(--accent);
+  color: #fff;
+  justify-content: center;
+}
+
+section.lead h1 {
+  color: #fff;
+  font-size: 2.1em;
+}
+
+section.lead h2 {
+  color: #cfe6ef;
+  font-weight: 500;
+}
+
+section.lead header,
+section.lead footer,
+section.lead::after {
+  color: #9fc6d6;
+}
+
+section.lead p, section.lead li {
+  color: #d9edf4;
+}
+
+section.lead strong {
+  color: #fff;
+}
+
+section.lead .branch {
+  background: #fff;
+  color: var(--accent);
+}
+
+/* diagram pierścieni (clean / onion) */
+.rings {
+  position: relative;
+  width: 420px;
+  height: 420px;
+  margin: 0 auto;
+}
+
+.rings div {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  font-size: 0.62em;
+  font-weight: 600;
+  padding-top: 10px;
+  box-sizing: border-box;
+}
+
+.rings .r4 { inset: 0; background: #dfe7ee; color: #3d4b5c; }
+.rings .r3 { inset: 50px; background: #c3d7e3; color: #26405a; }
+.rings .r2 { inset: 100px; background: #93bdd1; color: #12324a; }
+.rings .r1 { inset: 150px; background: var(--accent); color: #fff; align-items: center; padding-top: 0; }
+
+/* proste "pudełka" do diagramów */
+.flow {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.7em;
+}
+
+.flow .box {
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.35em 0.7em;
+  background: #fff;
+}
+
+.flow .box.warn {
+  border-color: var(--warm);
+}
+
+.flow .arrow {
+  color: var(--muted);
+}
